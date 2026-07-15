@@ -125,14 +125,22 @@
             <div class="about-logo" id="about-logo"></div>
             <div>
               <h2 class="about-name">صَوْب</h2>
-              <p class="about-version">الإصدار <span data-version>1.0.0</span> · رخصة MIT</p>
+              <p class="about-latin">SAWB</p>
+              <p class="about-version">الإصدار <span data-version>1.0.0</span></p>
             </div>
           </div>
           <p class="about-text">إضافة متصفح تضبط اتجاه الكتابة تلقائيًا بين RTL وLTR داخل حقول النص، خصوصًا في منصات الذكاء الاصطناعي والمنصات التحريرية.</p>
+          <p class="about-privacy">يعمل محليًا، بلا حساب أو خادم، ولا يرسل نصوصك.</p>
           <p class="about-compat">متوافقة مع: Chrome · Edge · Brave · Arc</p>
-          <!-- GitHub row: layout-ready, rendered only when a real repository
-               URL is configured (GITHUB_URL in options.ts). No placeholder. -->
-          <p class="about-github" id="github-row" hidden></p>
+          <!-- GitHub links come from src/config/links.ts; the releases button
+               is rendered only once RELEASES_PUBLISHED is true. -->
+          <div class="about-actions" id="about-actions"></div>
+          <div class="creator-block">
+            <div class="creator-sig" role="img" aria-label="توقيع سلطان بالخط العربي"></div>
+            <p class="creator-name">تصميم وبرمجة سلطان</p>
+            <p class="creator-latin">By Sultan</p>
+          </div>
+          <p class="about-license">الرخصة: MIT License</p>
         </section>
       </main>
     </div>

@@ -427,11 +427,87 @@ button {
   color: var(--sawb-muted);
 }
 
-.about-github {
-  font-size: 12px;
-  margin-top: 10px;
+/* Latin companion to the name — wordmark typography (Almarai 300,
+   letter-spacing 0.16em) at the About header scale. */
+.about-latin {
+  font-size: 11px;
+  font-weight: 300;
+  font-family: var(--sawb-font-brand);
+  color: var(--sawb-muted);
+  letter-spacing: 0.16em;
+  direction: ltr;
+  text-align: right;
+  margin: 0 0 4px;
 }
 
-.about-github a {
-  color: var(--sawb-teal);
+.about-privacy {
+  font-size: 12px;
+  color: var(--sawb-muted);
+  margin-bottom: 6px;
+}
+
+/* GitHub link buttons — the design's button geometry (padding 10px 18px,
+   radius 10, 13/600 Cairo) in the secondary «إلغاء» coloring. */
+.about-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.about-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--sawb-section);
+  color: var(--sawb-text);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sawb-font-ui);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.about-btn:hover {
+  background: color-mix(in srgb, var(--sawb-section) 80%, var(--sawb-muted) 20%);
+}
+
+/* ── Creator (secondary to the product identity — quiet, below a divider) ── */
+.creator-block {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--sawb-border);
+}
+
+/* The official signature file rendered through a mask so its ink follows the
+   theme; the SVG itself is never altered. */
+.creator-sig {
+  width: 88px;
+  height: 66px;
+  background-color: var(--sawb-text);
+  -webkit-mask: url('../assets/brand/sultan_calligraphy.svg') no-repeat center / contain;
+  mask: url('../assets/brand/sultan_calligraphy.svg') no-repeat center / contain;
+  margin-bottom: 8px;
+}
+
+.creator-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sawb-text);
+  margin: 0 0 2px;
+}
+
+.creator-latin {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  direction: ltr;
+  text-align: right;
+}
+
+/* License — deliberately the quietest line on the page. */
+.about-license {
+  margin-top: 18px;
+  font-size: 11px;
+  color: var(--sawb-muted);
 }

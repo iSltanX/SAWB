@@ -19,11 +19,14 @@ import type { Mode, Theme } from '../../platform/types';
 import { resolveAdapter } from '../../adapters/registry';
 import { logoWordmarkHtml, logoMarkSvg } from '../logo';
 import { iconSvg, type IconName } from '../icons';
-
-/** Real repository URL, when one exists. Empty → the GitHub row stays hidden. */
-const GITHUB_URL = '';
+import { GITHUB_LINKS, RELEASES_PUBLISHED } from '../../config/links';
 
 type Section = 'general' | 'sites' | 'shortcuts' | 'privacy' | 'about';
+
+/** Test seam for the releases state; production always follows the config. */
+export interface OptionsOverrides {
+  releasesPublished?: boolean;
+}
 
 /** Exact strings from the design mockup. */
 const MODE_LABEL: Record<Mode, string> = {
@@ -46,7 +49,7 @@ const PRIVACY_CHECKS = [
   'لا اتصال بخوادم خارجية إطلاقًا',
 ];
 
-export async function initOptions(doc: Document): Promise<void> {
+export async function initOptions(doc: Document, overrides: OptionsOverrides = {}): Promise<void> {
   const $ = (id: string): HTMLElement => {
     const el = doc.getElementById(id);
     if (!el) throw new Error(`options: missing #${id}`);
@@ -80,15 +83,24 @@ export async function initOptions(doc: Document): Promise<void> {
     </div>`,
   ).join('');
 
-  if (GITHUB_URL) {
-    const row = $('github-row');
-    row.hidden = false;
+  // GitHub buttons — all URLs come from src/config/links.ts. The releases
+  // button is created only when a real release exists (no placeholder).
+  const releasesPublished = overrides.releasesPublished ?? RELEASES_PUBLISHED;
+  const actions: { label: string; href: string }[] = [
+    { label: 'حسابي على GitHub', href: GITHUB_LINKS.creator },
+    { label: 'المشروع على GitHub', href: GITHUB_LINKS.repository },
+  ];
+  if (releasesPublished) {
+    actions.push({ label: 'آخر التحديثات', href: GITHUB_LINKS.releases });
+  }
+  for (const { label, href } of actions) {
     const link = doc.createElement('a');
-    link.href = GITHUB_URL;
+    link.className = 'about-btn';
+    link.href = href;
     link.target = '_blank';
     link.rel = 'noreferrer';
-    link.textContent = 'GitHub';
-    row.append(link);
+    link.textContent = label;
+    $('about-actions').append(link);
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────

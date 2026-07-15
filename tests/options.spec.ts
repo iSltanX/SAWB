@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { initOptions } from '../src/ui/options/options';
+import { initOptions, type OptionsOverrides } from '../src/ui/options/options';
+import { GITHUB_LINKS } from '../src/config/links';
 import { chromeStub, tick } from './helpers/setup';
 import type { Settings, SiteMap } from '../src/platform/types';
 
@@ -15,10 +16,13 @@ function storedSettings(): Partial<Settings> | undefined {
   return (chromeStub.storage.local.data as { settings?: Partial<Settings> }).settings;
 }
 
-async function openOptions(prefill?: { settings?: Partial<Settings>; sites?: SiteMap }) {
+async function openOptions(
+  prefill?: { settings?: Partial<Settings>; sites?: SiteMap },
+  overrides?: OptionsOverrides,
+) {
   if (prefill) chromeStub.storage.local.data = { ...prefill };
   document.body.innerHTML = body;
-  await initOptions(document);
+  await initOptions(document, overrides);
   await tick();
 }
 
@@ -44,7 +48,17 @@ describe('settings page rendering', () => {
     );
     expect(versions).toEqual(['1.0.0', '1.0.0']);
     expect(document.body.textContent).not.toContain('1.2.0');
-    expect(document.querySelector('.about-version')!.textContent).toBe('الإصدار 1.0.0 · رخصة MIT');
+    expect(document.querySelector('.about-version')!.textContent).toBe('الإصدار 1.0.0');
+  });
+
+  it('never places MIT next to the version; the license is a quiet closing line', async () => {
+    await openOptions();
+    expect(document.querySelector('.about-version')!.textContent).not.toContain('MIT');
+    expect(document.querySelector('.about-header')!.textContent).not.toContain('MIT');
+    const license = document.querySelector('.about-license')!;
+    expect(license.textContent).toBe('الرخصة: MIT License');
+    // The license line is the last element of the About section.
+    expect(el('sec-about').lastElementChild).toBe(license);
   });
 
   it('lists the four keyboard shortcuts exactly', async () => {
@@ -68,12 +82,72 @@ describe('settings page rendering', () => {
     );
   });
 
-  it('hides the GitHub row while no repository URL exists (no empty control)', async () => {
+  it('About shows both identities: صَوْب with SAWB, privacy line, and browsers', async () => {
     await openOptions();
-    const row = el('github-row');
-    expect(row.hidden).toBe(true);
-    expect(row.textContent).toBe('');
-    expect(document.querySelectorAll('#sec-about a').length).toBe(0);
+    expect(document.querySelector('.about-name')!.textContent).toBe('صَوْب');
+    expect(document.querySelector('.about-latin')!.textContent).toBe('SAWB');
+    expect(document.querySelector('.about-privacy')!.textContent).toBe(
+      'يعمل محليًا، بلا حساب أو خادم، ولا يرسل نصوصك.',
+    );
+    expect(document.querySelector('.about-compat')!.textContent).toBe(
+      'متوافقة مع: Chrome · Edge · Brave · Arc',
+    );
+  });
+
+  it('creator section: signature with Arabic alt text, تصميم وبرمجة سلطان, By Sultan', async () => {
+    await openOptions();
+    const sig = document.querySelector('.creator-sig')!;
+    expect(sig.getAttribute('role')).toBe('img');
+    expect(sig.getAttribute('aria-label')).toBe('توقيع سلطان بالخط العربي');
+    expect(document.querySelector('.creator-name')!.textContent).toBe('تصميم وبرمجة سلطان');
+    expect(document.querySelector('.creator-latin')!.textContent).toBe('By Sultan');
+    // Creator is secondary: it appears after the product content and actions.
+    const about = el('sec-about');
+    const children = Array.from(about.children);
+    expect(children.indexOf(document.querySelector('.creator-block')!)).toBeGreaterThan(
+      children.indexOf(el('about-actions')),
+    );
+  });
+
+  it('renders the profile and repository buttons from the central links config', async () => {
+    await openOptions();
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('#about-actions a'));
+    expect(links.map((a) => a.textContent)).toEqual(['حسابي على GitHub', 'المشروع على GitHub']);
+    expect(links.map((a) => a.href)).toEqual([GITHUB_LINKS.creator, GITHUB_LINKS.repository]);
+    for (const a of links) {
+      expect(a.target).toBe('_blank');
+      expect(a.rel).toBe('noreferrer');
+    }
+  });
+
+  it('the releases button does not exist before a release is published — no placeholder', async () => {
+    await openOptions();
+    expect(document.body.textContent).not.toContain('آخر التحديثات');
+    expect(document.querySelector(`a[href="${GITHUB_LINKS.releases}"]`)).toBeNull();
+    expect(document.querySelectorAll('#about-actions a').length).toBe(2);
+  });
+
+  it('the releases button appears once releases are published', async () => {
+    await openOptions(undefined, { releasesPublished: true });
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('#about-actions a'));
+    expect(links.map((a) => a.textContent)).toEqual([
+      'حسابي على GitHub',
+      'المشروع على GitHub',
+      'آخر التحديثات',
+    ]);
+    expect(links[2]!.href).toBe(GITHUB_LINKS.releases);
+  });
+
+  it('keyboard access: every interactive element in About is a real link or button', async () => {
+    await openOptions(undefined, { releasesPublished: true });
+    const interactive = Array.from(el('sec-about').querySelectorAll('a, button'));
+    expect(interactive.length).toBeGreaterThan(0);
+    for (const node of interactive) {
+      if (node.tagName === 'A') expect(node.getAttribute('href')).toBeTruthy();
+    }
+    // Focus visibility is enforced globally by the shared stylesheet.
+    const componentsCss = readFileSync('src/ui/components.css', 'utf8');
+    expect(componentsCss).toMatch(/:focus-visible\s*{[^}]*outline: 2px solid var\(--ring\)/);
   });
 
   it('sidebar navigation switches sections with aria-current', async () => {

@@ -1,6 +1,32 @@
+# Dependencies & build output
 node_modules/
 dist/
 dist-packages/
+coverage/
+logs/
 *.log
+*.tsbuildinfo
+
+# OS files
 .DS_Store
-design-reference/node_modules/
+Thumbs.db
+
+# Environment & credentials — never committed
+.env*
+
+# Design sources — local working material only, never committed
+/Complete Visual Identity Design.zip
+/*.zip
+design-reference/
+
+# Temporary captures & inspection payloads
+*.har
+screenshots/
+captures/
+
+# Editor temp files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
