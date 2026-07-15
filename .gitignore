@@ -1,0 +1,6 @@
+node_modules/
+dist/
+dist-packages/
+*.log
+.DS_Store
+design-reference/node_modules/

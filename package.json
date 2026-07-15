@@ -1,0 +1,30 @@
+{
+  "name": "sawb",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "صَوْب (SAWB) — إضافة متصفح تضبط اتجاه الكتابة تلقائيًا بين RTL وLTR داخل حقول النص والمحتوى المعروض. تعمل محليًا بلا حساب أو خادم.",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "package": "node scripts/package.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests scripts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "icons": "node scripts/generate-icons.mjs",
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.280",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "jsdom": "^25.0.1",
+    "sharp": "^0.33.5",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
+}
