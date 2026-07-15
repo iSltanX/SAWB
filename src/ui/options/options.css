@@ -1,0 +1,432 @@
+/**
+ * SAWB settings page — 1:1 with SettingsPageMockup in the authoritative
+ * design (design-reference/src/app/App.tsx). Every dimension, color, radius
+ * and spacing below is transcribed from that component; do not restyle.
+ * Shared components (toggle, badges, segmented control) live in
+ * ../components.css.
+ *
+ * Adaptation (reported at checkpoint): the mockup shows the settings card on
+ * a showcase page; as a real options tab the card (max-width 760, radius 20,
+ * border + shadow — all from the design) is centered on the theme background.
+ */
+
+@import '../fonts.css';
+@import '../tokens.css';
+@import '../components.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--sawb-font-ui);
+  direction: rtl;
+  background: var(--background);
+  color: var(--sawb-text);
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+  min-height: 100vh;
+}
+
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--sawb-text);
+  margin: 0 0 20px;
+}
+
+.m0 { margin: 0; }
+.mb14 { margin-bottom: 14px; }
+.mb16 { margin-bottom: 16px; }
+
+button {
+  font-family: var(--sawb-font-ui);
+  cursor: pointer;
+}
+
+/* ── Card frame (mockup container) ── */
+.settings-card {
+  width: 100%;
+  max-width: 760px;
+  background: var(--sawb-bg);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--sawb-border);
+  box-shadow: var(--sawb-settings-shadow);
+  align-self: flex-start;
+}
+
+/* ── Header ── */
+.settings-header {
+  background: var(--sawb-card);
+  border-bottom: 1px solid var(--sawb-border);
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-sep,
+.header-title {
+  color: var(--sawb-muted);
+  font-size: 13px;
+}
+
+/* ── Layout ── */
+.settings-body {
+  display: flex;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 200px;
+  border-left: 1px solid var(--sawb-border);
+  background: var(--sawb-card);
+  flex-shrink: 0;
+}
+
+.sidebar nav {
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar nav button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--sawb-muted);
+  font-size: 13px;
+  font-weight: 400;
+  border: none;
+  width: 100%;
+  text-align: right;
+  border-right: 3px solid transparent;
+  transition: all 0.12s;
+}
+
+.sidebar nav button[aria-current='true'] {
+  background: var(--sawb-section);
+  color: var(--sawb-text);
+  font-weight: 600;
+  border-right-color: var(--sawb-teal);
+}
+
+.nav-icon {
+  display: flex;
+  color: var(--sawb-muted);
+  flex-shrink: 0;
+}
+
+.sidebar nav button[aria-current='true'] .nav-icon {
+  color: var(--sawb-teal);
+}
+
+.version-card {
+  margin: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--sawb-section);
+}
+
+.version-line {
+  font-size: 11px;
+  color: var(--sawb-teal);
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.version-sub {
+  font-size: 11px;
+  color: var(--sawb-muted);
+}
+
+/* ── Content pane ── */
+.content {
+  flex: 1;
+  padding: 22px 24px;
+  background: var(--sawb-content);
+  min-height: 380px;
+  min-width: 0;
+}
+
+/* ── General ── */
+.control-block {
+  margin-bottom: 20px;
+}
+
+.control-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sawb-text);
+  margin: 0 0 8px;
+}
+
+.control-hint {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  margin-top: 6px;
+}
+
+.setting-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--sawb-section);
+}
+
+.setting-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sawb-text);
+}
+
+.setting-desc {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  margin-top: 3px;
+}
+
+/* ── Saved sites ── */
+.sites-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sites-count {
+  font-size: 12px;
+  color: var(--sawb-muted);
+}
+
+.sites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--sawb-section);
+  border: 1px solid var(--sawb-border);
+}
+
+.site-row-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.site-row-icon {
+  display: flex;
+  color: var(--sawb-muted);
+  flex-shrink: 0;
+}
+
+.site-row-domain {
+  font-size: 13px;
+  color: var(--sawb-text);
+  direction: ltr;
+  font-family: var(--sawb-font-mono);
+  margin: 0;
+}
+
+.site-row-supported {
+  font-size: 10px;
+  color: var(--sawb-teal);
+}
+
+.site-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Mode badge in site rows (mockup: 11/600, padding 3px 9px, radius 20,
+   color = mode color, background = color + '22') */
+.site-mode-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.site-mode-badge.mode-rtl {
+  color: var(--sawb-teal);
+  background: #1E908022;
+}
+
+.site-mode-badge.mode-ltr {
+  color: var(--sawb-copper);
+  background: #B8763F22;
+}
+
+.site-mode-badge.mode-auto,
+.site-mode-badge.mode-disabled {
+  color: var(--sawb-muted);
+  background: color-mix(in srgb, var(--sawb-muted) 13%, transparent);
+}
+
+.site-delete {
+  color: var(--sawb-muted);
+  background: transparent;
+  border: none;
+  padding: 4px;
+  display: flex;
+}
+
+/* ── Shortcuts ── */
+.shortcut-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--sawb-section);
+}
+
+.shortcut-action {
+  font-size: 13px;
+  color: var(--sawb-text);
+}
+
+.shortcut-keys {
+  display: flex;
+  gap: 4px;
+}
+
+.shortcut-keys kbd {
+  font-size: 11px;
+  font-family: var(--sawb-font-mono);
+  background: var(--sawb-kbd-bg);
+  color: var(--sawb-text);
+  border: 1px solid var(--sawb-border);
+  padding: 3px 8px;
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* ── Privacy ── */
+.privacy-box {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--sawb-privacy-bg);
+  border: 1px solid var(--sawb-privacy-border);
+  margin-bottom: 16px;
+}
+
+.privacy-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sawb-teal);
+  margin: 0 0 6px;
+}
+
+.privacy-text {
+  font-size: 13px;
+  color: var(--sawb-muted);
+  line-height: 1.7;
+}
+
+.privacy-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--sawb-text);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.privacy-check .check-icon {
+  display: flex;
+  color: var(--sawb-teal);
+  flex-shrink: 0;
+}
+
+/* ── About ── */
+.about-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.about-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  background: var(--sawb-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.about-name {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  font-family: var(--sawb-font-brand);
+}
+
+.about-version {
+  font-size: 13px;
+  color: var(--sawb-muted);
+}
+
+.about-text {
+  font-size: 13px;
+  color: var(--sawb-muted);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.about-compat {
+  font-size: 12px;
+  color: var(--sawb-muted);
+}
+
+.about-github {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.about-github a {
+  color: var(--sawb-teal);
+}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="system">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صَوْب — الإعدادات</title>
+  <script type="module" src="./options.ts"></script>
+</head>
+<body>
+  <div class="settings-card">
+    <!-- Header -->
+    <header class="settings-header">
+      <div id="wordmark"></div>
+      <span class="header-sep">—</span>
+      <span class="header-title">الإعدادات</span>
+    </header>
+
+    <div class="settings-body">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <nav aria-label="أقسام الإعدادات">
+          <button type="button" data-section="general" aria-current="true">
+            <span class="nav-icon" data-icon="settings"></span>الإعدادات العامة
+          </button>
+          <button type="button" data-section="sites">
+            <span class="nav-icon" data-icon="globe"></span>المواقع المحفوظة
+          </button>
+          <button type="button" data-section="shortcuts">
+            <span class="nav-icon" data-icon="keyboard"></span>اختصارات لوحة المفاتيح
+          </button>
+          <button type="button" data-section="privacy">
+            <span class="nav-icon" data-icon="shield"></span>الخصوصية
+          </button>
+          <button type="button" data-section="about">
+            <span class="nav-icon" data-icon="info"></span>حول الإضافة
+          </button>
+        </nav>
+        <div class="version-card">
+          <p class="version-line">صَوْب v<span data-version>1.0.0</span></p>
+          <p class="version-sub">يعمل محليًا · بلا حساب</p>
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <main class="content">
+        <!-- الإعدادات العامة -->
+        <section id="sec-general">
+          <h2>الإعدادات العامة</h2>
+          <div class="control-block">
+            <p class="control-label" id="default-mode-label">الاتجاه الافتراضي</p>
+            <div class="mode-selector" role="radiogroup" aria-labelledby="default-mode-label">
+              <button type="button" data-mode="auto" role="radio" aria-checked="false">تلقائي</button>
+              <button type="button" data-mode="rtl" role="radio" aria-checked="false">RTL ←</button>
+              <button type="button" data-mode="ltr" role="radio" aria-checked="false">LTR →</button>
+            </div>
+            <p class="control-hint">يُطبَّق على المواقع بلا تفضيلات مخصصة</p>
+          </div>
+          <div class="control-block">
+            <p class="control-label" id="theme-label">المظهر</p>
+            <div class="mode-selector" id="theme-selector" role="radiogroup" aria-labelledby="theme-label">
+              <button type="button" data-value="system" role="radio" aria-checked="false">تلقائي</button>
+              <button type="button" data-value="light" role="radio" aria-checked="false">فاتح</button>
+              <button type="button" data-value="dark" role="radio" aria-checked="false">داكن</button>
+            </div>
+          </div>
+          <div class="setting-rows">
+            <div class="setting-row">
+              <div>
+                <p class="setting-label" id="indicator-label">إظهار مؤشر الاتجاه</p>
+                <p class="setting-desc">علامة صغيرة بجانب حقل الكتابة النشط</p>
+              </div>
+              <button id="indicator-toggle" class="toggle toggle-teal" role="switch" aria-checked="true" aria-labelledby="indicator-label">
+                <span class="knob"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- المواقع المحفوظة -->
+        <section id="sec-sites" hidden>
+          <div class="sites-header">
+            <h2 class="m0">المواقع المحفوظة</h2>
+            <span class="sites-count" id="sites-count"></span>
+          </div>
+          <div class="sites-list" id="sites-list"></div>
+        </section>
+
+        <!-- اختصارات لوحة المفاتيح -->
+        <section id="sec-shortcuts" hidden>
+          <h2 class="mb16">اختصارات لوحة المفاتيح</h2>
+          <div class="shortcut-rows" id="shortcut-rows"></div>
+        </section>
+
+        <!-- الخصوصية -->
+        <section id="sec-privacy" hidden>
+          <h2 class="mb14">الخصوصية</h2>
+          <div class="privacy-box">
+            <p class="privacy-title">🔒 يعمل بالكامل على جهازك</p>
+            <p class="privacy-text">لا يُرسَل أي نص أو بيانات إلى خوادم خارجية. التفضيلات تُحفظ محليًا في متصفحك.</p>
+          </div>
+          <div id="privacy-checks"></div>
+        </section>
+
+        <!-- حول الإضافة -->
+        <section id="sec-about" hidden>
+          <div class="about-header">
+            <div class="about-logo" id="about-logo"></div>
+            <div>
+              <h2 class="about-name">صَوْب</h2>
+              <p class="about-version">الإصدار <span data-version>1.0.0</span> · رخصة MIT</p>
+            </div>
+          </div>
+          <p class="about-text">إضافة متصفح تضبط اتجاه الكتابة تلقائيًا بين RTL وLTR داخل حقول النص، خصوصًا في منصات الذكاء الاصطناعي والمنصات التحريرية.</p>
+          <p class="about-compat">متوافقة مع: Chrome · Edge · Brave · Arc</p>
+          <!-- GitHub row: layout-ready, rendered only when a real repository
+               URL is configured (GITHUB_URL in options.ts). No placeholder. -->
+          <p class="about-github" id="github-row" hidden></p>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

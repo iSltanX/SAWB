@@ -75,7 +75,20 @@ await build({
   },
 });
 
-// 4. Static assets.
+// 4. Options page.
+await build({
+  ...common,
+  root: path.join(root, 'src/ui/options'),
+  base: './',
+  build: {
+    ...common.build,
+    rollupOptions: {
+      input: path.join(root, 'src/ui/options/options.html'),
+    },
+  },
+});
+
+// 5. Static assets.
 await cp(path.join(root, 'manifest/manifest.json'), path.join(dist, 'manifest.json'));
 // OFL requires the font license to accompany distributed font files.
 await cp(path.join(root, 'THIRD_PARTY_NOTICES.md'), path.join(dist, 'THIRD_PARTY_NOTICES.md'));
@@ -93,7 +106,7 @@ const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 if (manifest.version !== pkg.version) {
   throw new Error(`Version mismatch: manifest ${manifest.version} != package ${pkg.version}`);
 }
-for (const file of ['content.js', 'worker.js', 'icons/icon-128.png', 'popup.html']) {
+for (const file of ['content.js', 'worker.js', 'icons/icon-128.png', 'popup.html', 'options.html']) {
   await readFile(path.join(dist, file));
 }
 console.log(`Built SAWB v${manifest.version} → dist/`);

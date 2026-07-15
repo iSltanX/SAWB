@@ -2,6 +2,8 @@
  * SAWB popup — 1:1 with ExtensionPopup in the authoritative design
  * (design-reference/src/app/App.tsx). Every dimension, color, radius and
  * spacing below is transcribed from that component; do not restyle.
+ * Shared components (toggle, badges, segmented control) live in
+ * ../components.css.
  *
  * One intentional difference, reported at checkpoint: the mockup draws the
  * popup as a floating card (radius 20, outer border + shadow) on a showcase
@@ -11,6 +13,7 @@
 
 @import '../fonts.css';
 @import '../tokens.css';
+@import '../components.css';
 
 * {
   box-sizing: border-box;
@@ -38,83 +41,6 @@ p {
 button {
   font-family: var(--sawb-font-ui);
   cursor: pointer;
-}
-
-/* Visible focus (design brief: «حالات focus مرئية بوضوح») using the design's
-   --ring token. The prototype removed outlines; the brief overrules it. */
-:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-  }
-}
-
-/* ── Badges (fontSize 10 / 600 / padding 2px 8px / radius 20) ── */
-.badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-
-.badge-teal {
-  color: var(--sawb-teal);
-  background: var(--sawb-teal-tint);
-}
-
-/* Generic-mode badge «وضع عام» — approved: components-tab badge pattern
-   (color + '22' tint) with the existing auto color. */
-.badge-auto {
-  color: var(--sawb-auto-blue);
-  background: #5870B022;
-}
-
-/* ── Toggle (40×22, r11, knob 16 white, on: knob right) ── */
-.toggle {
-  width: 40px;
-  height: 22px;
-  border-radius: 11px;
-  flex-shrink: 0;
-  background: var(--sawb-toggle-off);
-  position: relative;
-  border: none;
-  padding: 0;
-  transition: background 0.2s;
-}
-
-.toggle .knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  right: auto;
-  width: 16px;
-  height: 16px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: all 0.15s ease;
-}
-
-.toggle[aria-checked='true'] {
-  background: var(--toggle-color, var(--sawb-navy));
-}
-
-.toggle[aria-checked='true'] .knob {
-  left: auto;
-  right: 3px;
-}
-
-.toggle-teal {
-  --toggle-color: var(--sawb-teal);
-}
-
-.toggle-copper {
-  --toggle-color: var(--sawb-copper);
 }
 
 /* ── Header ── */
@@ -158,7 +84,7 @@ button {
   white-space: nowrap;
 }
 
-/* ── Mode selector ── */
+/* ── Mode selector block ── */
 .mode-block {
   padding: 14px 16px 6px;
 }
@@ -169,45 +95,6 @@ button {
   margin-bottom: 8px;
   font-weight: 600;
   letter-spacing: 0.04em;
-}
-
-.mode-selector {
-  display: flex;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1.5px solid var(--sawb-border);
-}
-
-.mode-selector button {
-  flex: 1;
-  padding: 9px 4px;
-  font-size: 13px;
-  font-weight: 400;
-  background: transparent;
-  color: var(--sawb-muted);
-  border: none;
-  transition: background 0.15s, color 0.15s;
-}
-
-.mode-selector button + button {
-  border-left: 1px solid var(--sawb-border);
-}
-
-.mode-selector button[aria-checked='true'] {
-  font-weight: 600;
-  color: #fff;
-}
-
-.mode-selector button[aria-checked='true'][data-mode='auto'] {
-  background: var(--sawb-navy);
-}
-
-.mode-selector button[aria-checked='true'][data-mode='rtl'] {
-  background: var(--sawb-teal);
-}
-
-.mode-selector button[aria-checked='true'][data-mode='ltr'] {
-  background: var(--sawb-copper);
 }
 
 .mode-desc {

@@ -91,6 +91,60 @@ describe('popup rendering', () => {
   });
 });
 
+describe('site-badge states — focused verification (Stage 2B item 1)', () => {
+  it('supported hostname → «موقع مدعوم ✓» visible in teal', async () => {
+    await openPopup('chatgpt.com', true);
+    const badge = el('site-badge');
+    expect(badge.hidden).toBe(false);
+    expect(badge.textContent).toBe('موقع مدعوم ✓');
+    expect(badge.className).toBe('badge badge-teal');
+  });
+
+  it('unsupported site via generic adapter → «وضع عام» visible in autoBlue', async () => {
+    await openPopup('example.com', false);
+    const badge = el('site-badge');
+    expect(badge.hidden).toBe(false);
+    expect(badge.textContent).toBe('وضع عام');
+    expect(badge.className).toBe('badge badge-auto');
+  });
+
+  it('restricted page (no content script) → no site badge, unavailable state', async () => {
+    document.body.innerHTML = body;
+    await initPopup(document); // default stub sendMessage throws
+    await tick();
+    expect(el('site-badge').hidden).toBe(true);
+    expect(document.body.classList.contains('page-unavailable')).toBe(true);
+  });
+
+  it('a persistently disabled SUPPORTED site keeps «موقع مدعوم ✓» — never «وضع عام»', async () => {
+    await openPopup('chatgpt.com', true);
+    el('disable-toggle').click();
+    await tick();
+    const badge = el('site-badge');
+    expect(badge.hidden).toBe(false);
+    expect(badge.textContent).toBe('موقع مدعوم ✓');
+    expect(el('enabled-badge').hidden).toBe(true); // مفعّلة hides, per mockup
+  });
+
+  it('changing values while persistently disabled never re-enables the engine', async () => {
+    const fake = await openPopup('chatgpt.com', true);
+    el('disable-toggle').click();
+    await tick();
+    // Mode + display changes while disabled (controls stay editable by design)
+    (document.querySelector('[data-mode="rtl"]') as HTMLElement).click();
+    await tick();
+    el('display-toggle').click();
+    await tick();
+    // The persistent disable is untouched and the effective config stays off.
+    expect(sites()['chatgpt.com']).toMatchObject({ disabled: true });
+    const state = (await chromeStub.tabs.sendMessage(1, { type: 'sawb/get-state' })) as PageState;
+    expect(state.config.enabled).toBe(false);
+    expect(fake.getTemp()?.disabled ?? undefined).not.toBe(false); // temp never re-enables
+    // Values were recorded for when the user re-enables.
+    expect(state.config.mode).toBe('rtl');
+  });
+});
+
 describe('temporary vs saved behavior (requirement 6)', () => {
   it('mode change with saving OFF applies a tab-only override, no storage write', async () => {
     const fake = await openPopup();

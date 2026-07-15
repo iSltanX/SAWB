@@ -67,6 +67,7 @@ export const chromeStub = {
     onInstalled: new EventStub(),
     sendMessage: async () => undefined,
     openOptionsPage: async () => undefined,
+    getManifest: () => ({ version: '1.0.0' }),
   },
   tabs: {
     query: defaultTabsQuery(),
