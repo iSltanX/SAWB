@@ -1,4 +1,4 @@
-# Safari & Firefox readiness — SAWB v1.0.0
+# Safari & Firefox readiness — SAWB v1.1.0
 
 The extension is a standard WebExtension (MV3) with a deliberately small API
 surface. All extension-API access goes through `src/platform/ext.ts`

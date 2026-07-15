@@ -41,14 +41,14 @@ describe('settings page rendering', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('system');
   });
 
-  it('shows version 1.0.0 in the sidebar card and About — never the prototype 1.2.0', async () => {
+  it('shows version 1.1.0 in the sidebar card and About — never the prototype 1.2.0', async () => {
     await openOptions();
     const versions = Array.from(document.querySelectorAll('[data-version]')).map(
       (s) => s.textContent,
     );
-    expect(versions).toEqual(['1.0.0', '1.0.0']);
+    expect(versions).toEqual(['1.1.0', '1.1.0']);
     expect(document.body.textContent).not.toContain('1.2.0');
-    expect(document.querySelector('.about-version')!.textContent).toBe('الإصدار 1.0.0');
+    expect(document.querySelector('.about-version')!.textContent).toBe('الإصدار 1.1.0');
   });
 
   it('never places MIT next to the version; the license is a quiet closing line', async () => {
@@ -110,7 +110,9 @@ describe('settings page rendering', () => {
   });
 
   it('renders the profile and repository buttons from the central links config', async () => {
-    await openOptions();
+    // Isolated from the releases flag so this test only asserts the two
+    // always-present buttons and their config-sourced hrefs.
+    await openOptions(undefined, { releasesPublished: false });
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('#about-actions a'));
     expect(links.map((a) => a.textContent)).toEqual(['حسابي على GitHub', 'المشروع على GitHub']);
     expect(links.map((a) => a.href)).toEqual([GITHUB_LINKS.creator, GITHUB_LINKS.repository]);
@@ -120,28 +122,35 @@ describe('settings page rendering', () => {
     }
   });
 
-  it('the releases button does not exist before a release is published — no placeholder', async () => {
-    await openOptions();
+  it('the releases button does not exist while releasesPublished is false — no placeholder', async () => {
+    await openOptions(undefined, { releasesPublished: false });
     expect(document.body.textContent).not.toContain('آخر التحديثات');
     expect(document.querySelector(`a[href="${GITHUB_LINKS.releases}"]`)).toBeNull();
     expect(document.querySelectorAll('#about-actions a').length).toBe(2);
   });
 
-  it('the releases button appears once releases are published', async () => {
-    await openOptions(undefined, { releasesPublished: true });
+  it('the releases button is visible by default (a real release is now published) and opens the real Releases URL', async () => {
+    await openOptions();
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('#about-actions a'));
     expect(links.map((a) => a.textContent)).toEqual([
       'حسابي على GitHub',
       'المشروع على GitHub',
       'آخر التحديثات',
     ]);
-    expect(links[2]!.href).toBe(GITHUB_LINKS.releases);
+    const releaseLink = links[2]!;
+    expect(releaseLink.href).toBe(GITHUB_LINKS.releases);
+    expect(releaseLink.href).toBe('https://github.com/iSltanX/SAWB/releases');
+    expect(releaseLink.target).toBe('_blank');
+    expect(releaseLink.rel).toBe('noreferrer');
   });
 
-  it('keyboard access: every interactive element in About is a real link or button', async () => {
-    await openOptions(undefined, { releasesPublished: true });
+  it('keyboard access: every interactive element in About is a real link or button, releases button included', async () => {
+    await openOptions();
     const interactive = Array.from(el('sec-about').querySelectorAll('a, button'));
     expect(interactive.length).toBeGreaterThan(0);
+    const releaseLink = interactive.find((n) => n.textContent === 'آخر التحديثات')!;
+    expect(releaseLink.tagName).toBe('A');
+    expect(releaseLink.getAttribute('href')).toBe(GITHUB_LINKS.releases);
     for (const node of interactive) {
       if (node.tagName === 'A') expect(node.getAttribute('href')).toBeTruthy();
     }

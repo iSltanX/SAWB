@@ -13,8 +13,8 @@ export const GITHUB_LINKS = {
 } as const;
 
 /**
- * Flip to true only after the first real GitHub Release is published.
- * While false, the «آخر التحديثات» button does not exist anywhere in the UI —
- * no disabled state, no placeholder.
+ * True once the first real GitHub Release exists (since v1.1.0). While
+ * false, the «آخر التحديثات» button does not exist anywhere in the UI — no
+ * disabled state, no placeholder.
  */
-export const RELEASES_PUBLISHED = false;
+export const RELEASES_PUBLISHED = true;

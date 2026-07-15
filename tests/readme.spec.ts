@@ -68,7 +68,7 @@ describe('README content', () => {
     expect(readme).toContain('SAWB');
     expect(readme).toContain('تصميم وبرمجة سلطان');
     expect(readme).toContain('By Sultan');
-    expect(readme).toContain('لا توجد إصدارات منشورة حتى الآن');
+    expect(readme).toContain('الإصدار الرسمي الحالي هو **v1.1.0**');
     expect(readme).toContain('manifest.json');
   });
 
