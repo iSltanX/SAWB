@@ -1,0 +1,191 @@
+/**
+ * SAWB design tokens — extracted VERBATIM from the authoritative design
+ * package (design-reference/src/styles/theme.css and the brand palette in
+ * design-reference/src/app/App.tsx). Do not invent or alter values.
+ *
+ * Theme switching: `data-theme` on <html> — "light", "dark", or "system"
+ * (system resolves via prefers-color-scheme).
+ */
+
+:root {
+  /* ── Brand palette (App.tsx const B) ── */
+  --sawb-copper: #B8763F;        /* color/action/ltr — نحاسي */
+  --sawb-teal: #1E9080;          /* color/action/rtl — تيلي */
+  --sawb-navy: #1A2540;          /* color/ink/primary — نيلي */
+  --sawb-deep: #0F1829;          /* color/ink/deep — خلفية الصفحة الداكنة */
+  --sawb-auto-blue: #5870B0;     /* color/action/auto */
+  --sawb-ivory: #F4F0E6;         /* color/surface/ivory */
+  --sawb-ivory-card: #FDFAF2;
+  --sawb-ivory-section: #EBE6D8;
+  --sawb-dark-card: #182234;
+  --sawb-dark-section: #1E2C42;
+  --sawb-text-light: #1A2540;
+  --sawb-text-dark: #EDE8DC;
+  --sawb-muted-light: #7A7068;
+  --sawb-muted-dark: #8A9AAE;
+  --sawb-border-light: rgba(26, 37, 64, 0.1);
+  --sawb-border-dark: rgba(237, 232, 220, 0.08);
+
+  /* ── Badge tints (App.tsx: teal at 0.10 light / 0.18 dark; color + "22") ── */
+  --sawb-teal-tint-light: rgba(30, 144, 128, 0.1);
+  --sawb-teal-tint-dark: rgba(30, 144, 128, 0.18);
+
+  /* ── Font stacks ── */
+  --sawb-font-ui: 'Cairo', sans-serif;
+  --sawb-font-brand: 'Almarai', sans-serif;
+  --sawb-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ── Semantic theme variables (theme.css :root — light) ── */
+:root,
+:root[data-theme='light'] {
+  --font-size: 16px;
+  --background: #F4F0E6;
+  --foreground: #1A2540;
+  --card: #FDFAF2;
+  --card-foreground: #1A2540;
+  --popover: #FDFAF2;
+  --popover-foreground: #1A2540;
+  --primary: #1A2540;
+  --primary-foreground: #F4F0E6;
+  --secondary: #EBE6D8;
+  --secondary-foreground: #1A2540;
+  --muted: #E2DDD0;
+  --muted-foreground: #7A7068;
+  --accent: #B8763F;
+  --accent-foreground: #ffffff;
+  --destructive: #C53030;
+  --destructive-foreground: #ffffff;
+  --border: rgba(26, 37, 64, 0.12);
+  --input: transparent;
+  --input-background: #EBE6D8;
+  --switch-background: #C0BAB0;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #1E9080;
+  --radius: 0.75rem;
+  --sidebar: #FDFAF2;
+  --sidebar-foreground: #1A2540;
+  --sidebar-primary: #1A2540;
+  --sidebar-primary-foreground: #F4F0E6;
+  --sidebar-accent: #EBE6D8;
+  --sidebar-accent-foreground: #1A2540;
+  --sidebar-border: rgba(26, 37, 64, 0.1);
+  --sidebar-ring: #1E9080;
+
+  /* Popup/settings composite tokens (App.tsx col mapping — light) */
+  --sawb-bg: var(--sawb-ivory);
+  --sawb-card: var(--sawb-ivory-card);
+  --sawb-section: var(--sawb-ivory-section);
+  --sawb-text: var(--sawb-text-light);
+  --sawb-muted: var(--sawb-muted-light);
+  --sawb-border: var(--sawb-border-light);
+  --sawb-teal-tint: var(--sawb-teal-tint-light);
+  --sawb-content: #FFFFFF;               /* settings content pane — light */
+  --sawb-kbd-bg: var(--sawb-ivory-card); /* kbd background — light */
+  --sawb-toggle-off: #A8B2BE;            /* Toggle off track (App.tsx) */
+  --sawb-popup-shadow: 0 20px 60px rgba(26, 37, 64, 0.18);
+  --sawb-settings-shadow: 0 24px 80px rgba(26, 37, 64, 0.1);
+  --sawb-privacy-bg: rgba(30, 144, 128, 0.06);
+  --sawb-privacy-border: rgba(30, 144, 128, 0.15);
+}
+
+/* ── Semantic theme variables (theme.css .dark) ── */
+:root[data-theme='dark'] {
+  --background: #0F1829;
+  --foreground: #EDE8DC;
+  --card: #182234;
+  --card-foreground: #EDE8DC;
+  --popover: #182234;
+  --popover-foreground: #EDE8DC;
+  --primary: #EDE8DC;
+  --primary-foreground: #1A2540;
+  --secondary: #1E2C42;
+  --secondary-foreground: #EDE8DC;
+  --muted: #1A2438;
+  --muted-foreground: #8A9AAE;
+  --accent: #C07D3C;
+  --accent-foreground: #ffffff;
+  --destructive: #E53E3E;
+  --destructive-foreground: #ffffff;
+  --border: rgba(237, 232, 220, 0.09);
+  --input: rgba(237, 232, 220, 0.08);
+  --input-background: #1E2C42;
+  --switch-background: #2C3D58;
+  --ring: #1E9080;
+  --sidebar: #182234;
+  --sidebar-foreground: #EDE8DC;
+  --sidebar-primary: #EDE8DC;
+  --sidebar-primary-foreground: #1A2540;
+  --sidebar-accent: #1E2C42;
+  --sidebar-accent-foreground: #EDE8DC;
+  --sidebar-border: rgba(237, 232, 220, 0.09);
+  --sidebar-ring: #1E9080;
+
+  /* Popup/settings composite tokens (App.tsx col mapping — dark) */
+  --sawb-bg: var(--sawb-deep);
+  --sawb-card: var(--sawb-dark-card);
+  --sawb-section: var(--sawb-dark-section);
+  --sawb-text: var(--sawb-text-dark);
+  --sawb-muted: var(--sawb-muted-dark);
+  --sawb-border: var(--sawb-border-dark);
+  --sawb-teal-tint: var(--sawb-teal-tint-dark);
+  --sawb-content: var(--sawb-deep);      /* settings content pane — dark */
+  --sawb-kbd-bg: #0F1829;                /* kbd background — dark */
+  --sawb-toggle-off: #A8B2BE;
+  --sawb-popup-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --sawb-settings-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  --sawb-privacy-bg: rgba(30, 144, 128, 0.08);
+  --sawb-privacy-border: rgba(30, 144, 128, 0.2);
+}
+
+/* System theme: mirror the dark block under prefers-color-scheme. */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='system'],
+  :root:not([data-theme]) {
+    --background: #0F1829;
+    --foreground: #EDE8DC;
+    --card: #182234;
+    --card-foreground: #EDE8DC;
+    --popover: #182234;
+    --popover-foreground: #EDE8DC;
+    --primary: #EDE8DC;
+    --primary-foreground: #1A2540;
+    --secondary: #1E2C42;
+    --secondary-foreground: #EDE8DC;
+    --muted: #1A2438;
+    --muted-foreground: #8A9AAE;
+    --accent: #C07D3C;
+    --accent-foreground: #ffffff;
+    --destructive: #E53E3E;
+    --destructive-foreground: #ffffff;
+    --border: rgba(237, 232, 220, 0.09);
+    --input: rgba(237, 232, 220, 0.08);
+    --input-background: #1E2C42;
+    --switch-background: #2C3D58;
+    --ring: #1E9080;
+    --sidebar: #182234;
+    --sidebar-foreground: #EDE8DC;
+    --sidebar-primary: #EDE8DC;
+    --sidebar-primary-foreground: #1A2540;
+    --sidebar-accent: #1E2C42;
+    --sidebar-accent-foreground: #EDE8DC;
+    --sidebar-border: rgba(237, 232, 220, 0.09);
+    --sidebar-ring: #1E9080;
+
+    --sawb-bg: var(--sawb-deep);
+    --sawb-card: var(--sawb-dark-card);
+    --sawb-section: var(--sawb-dark-section);
+    --sawb-text: var(--sawb-text-dark);
+    --sawb-muted: var(--sawb-muted-dark);
+    --sawb-border: var(--sawb-border-dark);
+    --sawb-teal-tint: var(--sawb-teal-tint-dark);
+    --sawb-content: var(--sawb-deep);
+    --sawb-kbd-bg: #0F1829;
+    --sawb-toggle-off: #A8B2BE;
+    --sawb-popup-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    --sawb-settings-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+    --sawb-privacy-bg: rgba(30, 144, 128, 0.08);
+    --sawb-privacy-border: rgba(30, 144, 128, 0.2);
+  }
+}
