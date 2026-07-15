@@ -28,5 +28,7 @@ export const chatgptAdapter: SiteAdapter = {
   // ChatGPT is known to render Arabic/mixed content with the page's LTR
   // direction; its message surfaces are approved for host-dir override.
   overridesHostDir: true,
-  observeTargets: (doc) => (doc.body ? [doc.body] : []),
+  // documentElement is never replaced by SPA hydration (body can be —
+  // verified live on chatgpt.com), so observe it for reliable coverage.
+  observeTargets: (doc) => [doc.documentElement],
 };

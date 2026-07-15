@@ -39,5 +39,7 @@ export const genericAdapter: SiteAdapter = {
     '[role="tree"]',
   ],
   overridesHostDir: false,
-  observeTargets: (doc) => (doc.body ? [doc.body] : []),
+  // documentElement is never replaced by SPA hydration (body can be —
+  // verified live on chatgpt.com), so observe it for reliable coverage.
+  observeTargets: (doc) => [doc.documentElement],
 };

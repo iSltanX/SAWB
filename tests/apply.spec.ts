@@ -97,35 +97,34 @@ describe('applyToField', () => {
     expect(root.querySelector('p')!.hasAttribute('dir')).toBe(false);
   });
 
-  it('contenteditable auto mode: per-leaf-block dir=auto', () => {
+  it('contenteditable auto mode: ROOT-level dir=auto (live editors recreate blocks)', () => {
     document.body.innerHTML =
       '<div contenteditable="true"><p>مرحبا بالعالم</p><p>Hello world</p></div>';
     const root = document.querySelector('[contenteditable]')!;
     applyToField(root, 'auto');
-    expect(root.hasAttribute('dir')).toBe(false); // root left to the editor
+    expect(root.getAttribute('dir')).toBe('auto');
+    // Inner blocks are never touched — writing there fights the editor.
     const [p1, p2] = Array.from(root.querySelectorAll('p'));
-    expect(p1!.getAttribute('dir')).toBe('auto');
-    expect(p2!.getAttribute('dir')).toBe('auto');
+    expect(p1!.hasAttribute('dir')).toBe(false);
+    expect(p2!.hasAttribute('dir')).toBe(false);
   });
 
-  it('empty paragraph inherits the previous block direction (caret stability)', () => {
-    document.body.innerHTML =
-      '<div contenteditable="true"><p>مرحبا بالعالم</p><p><br></p></div>';
-    const root = document.querySelector('[contenteditable]')!;
-    applyToField(root, 'auto');
-    const [p1, p2] = Array.from(root.querySelectorAll('p'));
-    expect(p1!.getAttribute('dir')).toBe('auto');
-    expect(p2!.getAttribute('dir')).toBe('rtl'); // inherited from Arabic paragraph
-  });
-
-  it('switching manual → auto releases the root back to the editor', () => {
+  it('switching manual → auto keeps control at the root with dir=auto', () => {
     document.body.innerHTML = '<div contenteditable="true"><p>Hello</p></div>';
     const root = document.querySelector('[contenteditable]')!;
     applyToField(root, 'rtl');
     expect(root.getAttribute('dir')).toBe('rtl');
     applyToField(root, 'auto');
-    expect(root.hasAttribute('dir')).toBe(false);
-    expect(root.querySelector('p')!.getAttribute('dir')).toBe('auto');
+    expect(root.getAttribute('dir')).toBe('auto');
+    expect(root.querySelector('p')!.hasAttribute('dir')).toBe(false);
+  });
+
+  it('clears legacy per-block field marks inside the editor', () => {
+    document.body.innerHTML = '<div contenteditable="true"><p data-sawb="field" dir="auto">نص</p></div>';
+    const root = document.querySelector('[contenteditable]')!;
+    applyToField(root, 'auto');
+    expect(root.getAttribute('dir')).toBe('auto');
+    expect(root.querySelector('p')!.hasAttribute('data-sawb')).toBe(false);
   });
 
   it('single-line editor with no blocks: the root is the block', () => {

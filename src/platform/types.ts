@@ -54,20 +54,32 @@ export interface TempOverride {
   disabled?: boolean;
 }
 
+export interface ResolveOptions {
+  /**
+   * Generic-mode safety: on unsupported (generic-adapter) sites, displayed-
+   * text processing stays off unless the user enabled it for that site
+   * explicitly (site pref or tab override) — the global display default does
+   * not apply there.
+   */
+  genericSite?: boolean;
+}
+
 export function resolveEffectiveConfig(
   settings: Settings,
   site: SitePref | undefined,
   temp: TempOverride | null,
+  opts: ResolveOptions = {},
 ): EffectiveConfig {
   // Persistent site disable (popup) and temporary disable (shortcut) are
   // strictly separate: persistent always wins; temporary is additive-only —
   // it can never re-enable a persistently disabled site.
   const disabled = (site?.disabled ?? false) || (temp?.disabled ?? false);
+  const displayDefault = opts.genericSite ? false : settings.applyToDisplay;
   return {
     enabled: settings.enabled && !disabled,
     mode: temp?.mode ?? site?.mode ?? settings.defaultMode,
     fields: temp?.fields ?? site?.fields ?? settings.applyToFields,
-    display: temp?.display ?? site?.display ?? settings.applyToDisplay,
+    display: temp?.display ?? site?.display ?? displayDefault,
     showIndicator: settings.showIndicator,
   };
 }

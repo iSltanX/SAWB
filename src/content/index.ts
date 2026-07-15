@@ -37,7 +37,9 @@ async function main(): Promise<void> {
   let indicator: DirectionIndicator | null = null;
 
   const compute = (): EffectiveConfig =>
-    resolveEffectiveConfig(snapshot.settings, snapshot.sites[host], temp);
+    resolveEffectiveConfig(snapshot.settings, snapshot.sites[host], temp, {
+      genericSite: !adapter.supported,
+    });
 
   const sync = (): void => {
     const config = compute();

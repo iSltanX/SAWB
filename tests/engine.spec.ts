@@ -34,12 +34,14 @@ function chatgptFixture(): void {
 }
 
 describe('DirectionEngine on a ChatGPT-like page', () => {
-  it('applies auto direction to composer blocks and message blocks', () => {
+  it('applies auto direction to the composer root and message blocks', () => {
     chatgptFixture();
     const engine = new DirectionEngine(chatgptAdapter);
     engine.start(CONFIG);
 
-    expect(document.querySelector('#prompt-textarea p')!.getAttribute('dir')).toBe('auto');
+    // Root-level for live editors; inner blocks are the editor's territory.
+    expect(document.querySelector('#prompt-textarea')!.getAttribute('dir')).toBe('auto');
+    expect(document.querySelector('#prompt-textarea p')!.hasAttribute('dir')).toBe(false);
     const markdownPs = document.querySelectorAll('.markdown > p');
     expect(markdownPs[0]!.getAttribute('dir')).toBe('auto');
     expect(markdownPs[1]!.getAttribute('dir')).toBe('auto');
@@ -106,7 +108,7 @@ describe('DirectionEngine on a ChatGPT-like page', () => {
     engine.start(CONFIG);
     engine.update({ ...CONFIG, fields: false });
 
-    expect(document.querySelector('#prompt-textarea p')!.hasAttribute('dir')).toBe(false);
+    expect(document.querySelector('#prompt-textarea')!.hasAttribute('dir')).toBe(false);
     expect(document.querySelector('.markdown > p')!.getAttribute('dir')).toBe('auto');
     engine.stop();
   });
@@ -120,7 +122,7 @@ describe('DirectionEngine on a ChatGPT-like page', () => {
     expect(document.querySelector('#prompt-textarea')!.getAttribute('dir')).toBe('rtl');
     engine.update({ ...CONFIG, mode: 'auto' });
     expect(document.querySelector('.markdown > p')!.getAttribute('dir')).toBe('auto');
-    expect(document.querySelector('#prompt-textarea')!.hasAttribute('dir')).toBe(false);
+    expect(document.querySelector('#prompt-textarea')!.getAttribute('dir')).toBe('auto');
     engine.stop();
   });
 
@@ -133,7 +135,7 @@ describe('DirectionEngine on a ChatGPT-like page', () => {
 
     for (let i = 0; i < 14; i += 1) {
       field.setAttribute('dir', 'ltr'); // hostile host re-render loop
-      await flushMutations(40);
+      await flushMutations(150); // > the 120ms background-safe flush timeout
       if (!field.hasAttribute(MARK_ATTR)) break; // engine gave up
     }
     // Engine surrendered: element restored to its original state (no dir,

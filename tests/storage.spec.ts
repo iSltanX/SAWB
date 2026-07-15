@@ -120,3 +120,43 @@ describe('resolveEffectiveConfig precedence', () => {
     expect(c.enabled).toBe(false);
   });
 });
+
+describe('global-default precedence (Stage 2C item 1)', () => {
+  it('globals apply to sites with no explicit override', () => {
+    const s: Settings = { ...DEFAULT_SETTINGS, defaultMode: 'rtl', applyToFields: false };
+    const c = resolveEffectiveConfig(s, undefined, null);
+    expect(c.mode).toBe('rtl');
+    expect(c.fields).toBe(false);
+  });
+
+  it('a site preference overrides only the values it defines; the rest inherit CURRENT globals', () => {
+    const site = { mode: 'ltr' as const, savedAt: 1 }; // no fields/display keys
+    let c = resolveEffectiveConfig(DEFAULT_SETTINGS, site, null);
+    expect(c.mode).toBe('ltr');
+    expect(c.fields).toBe(true); // inherited default
+    // Global default changes later → the missing keys follow it.
+    c = resolveEffectiveConfig({ ...DEFAULT_SETTINGS, applyToFields: false }, site, null);
+    expect(c.fields).toBe(false);
+    expect(c.mode).toBe('ltr'); // explicit key unaffected
+  });
+
+  it('generic-site safety: global display default never applies on generic sites', () => {
+    const s: Settings = { ...DEFAULT_SETTINGS, applyToDisplay: true };
+    expect(resolveEffectiveConfig(s, undefined, null, { genericSite: true }).display).toBe(false);
+    expect(resolveEffectiveConfig(s, undefined, null, { genericSite: false }).display).toBe(true);
+  });
+
+  it('generic-site display turns on only via explicit per-site choice', () => {
+    const s: Settings = { ...DEFAULT_SETTINGS, applyToDisplay: true };
+    expect(
+      resolveEffectiveConfig(s, { display: true, savedAt: 1 }, null, { genericSite: true }).display,
+    ).toBe(true);
+    expect(
+      resolveEffectiveConfig(s, undefined, { display: true }, { genericSite: true }).display,
+    ).toBe(true);
+  });
+
+  it('generic sites always support writing fields (global default applies)', () => {
+    expect(resolveEffectiveConfig(DEFAULT_SETTINGS, undefined, null, { genericSite: true }).fields).toBe(true);
+  });
+});

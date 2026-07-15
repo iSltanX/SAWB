@@ -170,6 +170,11 @@ button {
   margin-bottom: 20px;
 }
 
+.theme-block {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
 .control-label {
   font-size: 13px;
   font-weight: 600;

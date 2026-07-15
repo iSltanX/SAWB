@@ -122,6 +122,8 @@ export async function initOptions(doc: Document): Promise<void> {
     )) {
       button.setAttribute('aria-checked', String(button.dataset.value === settings.theme));
     }
+    $('fields-toggle').setAttribute('aria-checked', String(settings.applyToFields));
+    $('display-toggle').setAttribute('aria-checked', String(settings.applyToDisplay));
     $('indicator-toggle').setAttribute('aria-checked', String(settings.showIndicator));
 
     // Saved sites.
@@ -201,6 +203,12 @@ export async function initOptions(doc: Document): Promise<void> {
       void setSettings({ theme: button.dataset.value as Theme });
     });
   }
+  $('fields-toggle').addEventListener('click', () => {
+    void setSettings({ applyToFields: !snapshot.settings.applyToFields });
+  });
+  $('display-toggle').addEventListener('click', () => {
+    void setSettings({ applyToDisplay: !snapshot.settings.applyToDisplay });
+  });
   $('indicator-toggle').addEventListener('click', () => {
     void setSettings({ showIndicator: !snapshot.settings.showIndicator });
   });

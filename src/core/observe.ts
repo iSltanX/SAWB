@@ -51,14 +51,20 @@ export class BatchedObserver {
   private schedule(): void {
     if (this.scheduled || this.pending.size === 0) return;
     this.scheduled = true;
+    let flushed = false;
     const flush = () => {
+      if (flushed) return;
+      flushed = true;
       this.scheduled = false;
       if (this.disconnected) return;
       const batch = this.pending;
       this.pending = new Set();
       if (batch.size > 0) this.onBatch(batch);
     };
+    // rAF aligns work with frames when the tab is visible, but it never fires
+    // in hidden/background tabs (verified live on chatgpt.com): race it with a
+    // timeout so streaming content is still processed while unfocused.
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(flush);
-    else setTimeout(flush, 32);
+    setTimeout(flush, 120);
   }
 }

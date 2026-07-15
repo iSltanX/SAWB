@@ -118,6 +118,37 @@ describe('settings behavior', () => {
     expect(storedSettings()?.showIndicator).toBe(false);
     expect(el('indicator-toggle').getAttribute('aria-checked')).toBe('false');
   });
+
+  it('global writing-fields and displayed-text rows persist their defaults', async () => {
+    await openOptions();
+    expect(el('fields-toggle').getAttribute('aria-checked')).toBe('true'); // default
+    expect(el('display-toggle').getAttribute('aria-checked')).toBe('false'); // default
+    el('fields-toggle').click();
+    await tick();
+    el('display-toggle').click();
+    await tick();
+    expect(storedSettings()?.applyToFields).toBe(false);
+    expect(storedSettings()?.applyToDisplay).toBe(true);
+    // Unrelated settings keep their values.
+    expect(storedSettings()?.defaultMode).toBe('auto');
+    expect(storedSettings()?.theme).toBe('system');
+    expect(el('fields-toggle').getAttribute('aria-checked')).toBe('false');
+    expect(el('display-toggle').getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('general section order: الاتجاه الافتراضي، حقول الكتابة، النصوص المعروضة، إظهار مؤشر الاتجاه، المظهر', async () => {
+    await openOptions();
+    const labels = Array.from(
+      document.querySelectorAll('#sec-general .control-label, #sec-general .setting-label'),
+    ).map((n) => n.textContent);
+    expect(labels).toEqual([
+      'الاتجاه الافتراضي',
+      'حقول الكتابة',
+      'النصوص المعروضة',
+      'إظهار مؤشر الاتجاه',
+      'المظهر',
+    ]);
+  });
 });
 
 describe('saved sites list', () => {

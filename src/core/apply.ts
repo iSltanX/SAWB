@@ -9,7 +9,6 @@
  */
 
 import { isProtectedElement, isNumericTable, TECHNICAL_INLINE_SELECTOR } from './classify';
-import { detectDirection } from './detect';
 import type { Mode } from '../platform/types';
 
 export const MARK_ATTR = 'data-sawb';
@@ -114,10 +113,14 @@ export function isEditableRoot(el: Element): boolean {
 }
 
 /**
- * Apply a direction mode to a writing field.
- * - input/textarea: `dir=auto` (native, most stable) or the explicit mode.
- * - contenteditable roots: explicit mode on the root; in auto mode, per-leaf-
- *   block `dir=auto` so multi-paragraph mixed documents stay visually stable.
+ * Apply a direction mode to a writing field — always at the ROOT element.
+ *
+ * Rich editors (ProseMirror on chatgpt.com, verified live 2026-07-15)
+ * recreate their block nodes whenever an outside attribute lands on them, so
+ * per-block writes inside a live editor fight the editor's reconciliation
+ * forever. The root element's attributes are outside the editor's managed
+ * schema: `dir` set there persists across transactions, and `dir=auto`
+ * resolves from the editor's first strong character natively.
  */
 export function applyToField(el: Element, mode: Mode, excludeSelector?: string): void {
   if (isProtectedElement(el, excludeSelector)) return;
@@ -129,50 +132,19 @@ export function applyToField(el: Element, mode: Mode, excludeSelector?: string):
 
   if (!isEditableRoot(el)) return;
 
-  if (mode !== 'auto') {
-    setDir(el, mode, 'field');
-    // Clear any per-block markers from a previous auto pass.
-    for (const block of Array.from(el.querySelectorAll(`[${MARK_ATTR}]`))) restoreElement(block);
-    return;
+  setDir(el, mode === 'auto' ? 'auto' : mode, 'field');
+  // Clear any per-block markers left inside by earlier versions/passes.
+  for (const block of Array.from(el.querySelectorAll(`[${MARK_ATTR}="field"]`))) {
+    restoreElement(block);
   }
-
-  // Auto mode. If a previous manual pass marked the root, release it first so
-  // the editor's own root direction is back in charge.
-  if (el.hasAttribute(MARK_ATTR)) restoreElement(el);
-  applyAutoPerBlock(el, 'field', excludeSelector);
 }
 
 /** Leaf blocks (blocks with no block children) get `dir=auto`. */
 function leafBlocks(root: Element): Element[] {
   const all = Array.from(root.querySelectorAll(BLOCK_SELECTOR));
   const leaves = all.filter((b) => !b.querySelector(BLOCK_SELECTOR));
-  // Single-line editors have no block children at all: treat the root itself
-  // as the one block.
+  // Roots with no block children at all: the root itself is the one block.
   return leaves.length > 0 ? leaves : [root];
-}
-
-function applyAutoPerBlock(root: Element, kind: MarkKind, excludeSelector?: string): void {
-  let previous: Element | null = null;
-  for (const block of leafBlocks(root)) {
-    if (isProtectedElement(block, excludeSelector)) continue;
-    const text = block.textContent ?? '';
-    if (text.trim() === '') {
-      // Empty block (fresh paragraph while typing): inherit the previous
-      // block's direction so the caret does not jump, instead of letting
-      // dir=auto fall back to the page default.
-      if (previous) {
-        const inherited = previous.getAttribute('dir');
-        if (inherited === 'rtl' || inherited === 'ltr') setDir(block, inherited, kind);
-        else if (inherited === 'auto') {
-          const d = detectDirection(previous.textContent ?? '');
-          if (d) setDir(block, d, kind);
-        }
-      }
-    } else {
-      setDir(block, 'auto', kind);
-    }
-    previous = block;
-  }
 }
 
 // ── Displayed content ────────────────────────────────────────────────────────
@@ -186,11 +158,20 @@ export interface DisplayOptions {
   excludeSelector?: string;
 }
 
-/** True when the host page explicitly directed this element (not us). */
+/**
+ * True when the host page explicitly set a MEANINGFUL direction (not us).
+ * `dir="auto"` does not count: it is an auto-detection instruction, not a
+ * fixed direction — refining it per leaf block (e.g. GitHub sets dir=auto on
+ * UL but not LI, so mixed lists resolve wrong) does not contradict host
+ * intent. Only rtl/ltr values and inline direction styles count.
+ */
 export function hasExplicitHostDir(el: Element): boolean {
   let node: Element | null = el;
   while (node) {
-    if (node.hasAttribute('dir') && !node.hasAttribute(MARK_ATTR)) return true;
+    if (!node.hasAttribute(MARK_ATTR)) {
+      const value = node.getAttribute('dir')?.toLowerCase();
+      if (value === 'rtl' || value === 'ltr') return true;
+    }
     const style = (node as HTMLElement).style;
     if (style && style.direction) return true;
     node = node.parentElement;

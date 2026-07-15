@@ -55,15 +55,25 @@
             </div>
             <p class="control-hint">يُطبَّق على المواقع بلا تفضيلات مخصصة</p>
           </div>
-          <div class="control-block">
-            <p class="control-label" id="theme-label">المظهر</p>
-            <div class="mode-selector" id="theme-selector" role="radiogroup" aria-labelledby="theme-label">
-              <button type="button" data-value="system" role="radio" aria-checked="false">تلقائي</button>
-              <button type="button" data-value="light" role="radio" aria-checked="false">فاتح</button>
-              <button type="button" data-value="dark" role="radio" aria-checked="false">داكن</button>
-            </div>
-          </div>
           <div class="setting-rows">
+            <div class="setting-row">
+              <div>
+                <p class="setting-label" id="fields-label">حقول الكتابة</p>
+                <p class="setting-desc">تطبيق الاتجاه على صناديق الإدخال</p>
+              </div>
+              <button id="fields-toggle" class="toggle toggle-teal" role="switch" aria-checked="true" aria-labelledby="fields-label">
+                <span class="knob"></span>
+              </button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <p class="setting-label" id="display-label">النصوص المعروضة</p>
+                <p class="setting-desc">تطبيق الاتجاه على النص القابل للقراءة</p>
+              </div>
+              <button id="display-toggle" class="toggle toggle-teal" role="switch" aria-checked="false" aria-labelledby="display-label">
+                <span class="knob"></span>
+              </button>
+            </div>
             <div class="setting-row">
               <div>
                 <p class="setting-label" id="indicator-label">إظهار مؤشر الاتجاه</p>
@@ -72,6 +82,14 @@
               <button id="indicator-toggle" class="toggle toggle-teal" role="switch" aria-checked="true" aria-labelledby="indicator-label">
                 <span class="knob"></span>
               </button>
+            </div>
+          </div>
+          <div class="control-block theme-block">
+            <p class="control-label" id="theme-label">المظهر</p>
+            <div class="mode-selector" id="theme-selector" role="radiogroup" aria-labelledby="theme-label">
+              <button type="button" data-value="system" role="radio" aria-checked="false">تلقائي</button>
+              <button type="button" data-value="light" role="radio" aria-checked="false">فاتح</button>
+              <button type="button" data-value="dark" role="radio" aria-checked="false">داكن</button>
             </div>
           </div>
         </section>
