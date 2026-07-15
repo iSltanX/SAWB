@@ -148,9 +148,16 @@ describe('site-badge states — focused verification (Stage 2B item 1)', () => {
   });
 });
 
-describe('partial-support badge (Claude correction: fields verified, display not)', () => {
+/**
+ * General badge-mechanism regression (not a claim about any specific site's
+ * current status — claude.ai reached "full" support once its display
+ * selectors were live-verified; see tests/adapters/claude.spec.ts). Uses a
+ * hypothetical partially-verified site to prove the popup still renders the
+ * partial badge correctly whenever a FUTURE adapter is display-unverified.
+ */
+describe('partial-support badge (general mechanism)', () => {
   it('a dedicated adapter with unverified display shows partial-support, never «موقع مدعوم ✓»', async () => {
-    await openPopup('claude.ai', 'partial');
+    await openPopup('example-ai.test', 'partial');
     const badge = el('site-badge');
     expect(badge.hidden).toBe(false);
     expect(badge.textContent).toBe('دعم جزئي — الحقول فقط');
@@ -160,7 +167,7 @@ describe('partial-support badge (Claude correction: fields verified, display not
   });
 
   it('partial support still allows normal field control (fields are verified)', async () => {
-    await openPopup('claude.ai', 'partial');
+    await openPopup('example-ai.test', 'partial');
     expect(el('fields-toggle').getAttribute('aria-checked')).toBe('true');
     (document.querySelector('[data-mode="rtl"]') as HTMLElement).click();
     await tick();
@@ -168,7 +175,7 @@ describe('partial-support badge (Claude correction: fields verified, display not
   });
 
   it('a persistently disabled partial-support site keeps the partial badge, not موقع مدعوم ✓', async () => {
-    await openPopup('claude.ai', 'partial');
+    await openPopup('example-ai.test', 'partial');
     el('disable-toggle').click();
     await tick();
     expect(el('site-badge').textContent).toBe('دعم جزئي — الحقول فقط');

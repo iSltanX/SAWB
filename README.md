@@ -28,7 +28,7 @@ data is your own settings and per-site preferences, kept in
 | GitHub (github.com — issues, PRs, discussions, releases, markdown editors/previews, repo description) | ✅ | ✅ |
 | Gemini (gemini.google.com) | ✅ | ✅ |
 | Google AI Studio (aistudio.google.com) | ✅ | ✅ |
-| Claude (claude.ai) | ✅ verified | ❌ not yet — see limitations |
+| Claude (claude.ai) | ✅ verified | ✅ verified |
 | Substack (\*.substack.com) | ✅ | ✅ (post bodies) |
 | Any other website | ✅ generic safe mode | opt-in per site |
 
@@ -123,16 +123,15 @@ live verification (2026-07-15):
 
 ## Known limitations
 
-- **claude.ai displayed text**: confirmed broken live — Arabic assistant/user
-  messages stay LTR even in manual RTL mode, because the adapter has no
-  display selectors yet. Writing fields are confirmed working (root-level
-  `dir`, universal editable detection). The popup shows «دعم جزئي — الحقول
-  فقط» for claude.ai instead of the full-support badge until this is fixed.
-  Fixing it requires live DOM data from an authenticated Claude conversation
-  (assistant/user message containers, list/heading/code-block structure) that
-  could not be gathered in this environment — the extension author should
-  supply it (see `docs/CLAUDE-DOM-INSPECTION.md` for a ready-to-run
-  diagnostic script) before the display adapter can be completed.
+- **claude.ai displayed text** is now fully implemented and live-verified
+  (see `docs/CLAUDE-DOM-INSPECTION.md` for the inspection history). Two
+  selector mistakes were caught and fixed during live testing: a blanket
+  `button` exclude silently hid every user message (Claude wraps the whole
+  user-message bubble in a `<button>` for click-to-edit), and a
+  `[data-testid="file-thumbnail"]` exclude hid pasted-text attachment cards
+  (that testid isn't image-only). Both are documented in the adapter's source
+  comments as a caution against excluding by inferred purpose without
+  verifying against a live conversation.
 - **Substack custom domains** are not identifiable as Substack and fall back
   to generic mode; the Substack post editor and comment box were not
   live-inspected (login required) and rely on universal editable detection.

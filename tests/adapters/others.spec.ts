@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { DirectionEngine } from '../../src/core/engine';
-import { claudeAdapter } from '../../src/adapters/claude';
 import { geminiAdapter } from '../../src/adapters/gemini';
 import { aistudioAdapter } from '../../src/adapters/aistudio';
 import { substackAdapter } from '../../src/adapters/substack';
 import { resolveAdapter } from '../../src/adapters/registry';
-import { supportLevel } from '../../src/adapters/types';
 import type { EffectiveConfig } from '../../src/platform/types';
 import { flushMutations } from '../helpers/setup';
 
@@ -34,127 +32,6 @@ describe('registry resolution for all supported sites', () => {
   for (const [host, id] of cases) {
     it(`${host} → ${id}`, () => expect(resolveAdapter(host).id).toBe(id));
   }
-});
-
-describe('Claude adapter — fields verified, display pending real DOM data', () => {
-  it('processes the composer, skips CodeMirror artifacts, applies no display', () => {
-    document.body.innerHTML = `
-      <main>
-        <div contenteditable="true" class="ProseMirror"><p>مرحبا</p></div>
-        <div class="cm-editor"><div class="cm-content" contenteditable="true"></div></div>
-        <div class="message"><p>Some assistant text</p></div>
-      </main>`;
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    expect(document.querySelector('.ProseMirror')!.getAttribute('dir')).toBe('auto');
-    expect(document.querySelector('.ProseMirror p')!.hasAttribute('dir')).toBe(false);
-    expect(document.querySelector('.cm-content')!.hasAttribute('dir')).toBe(false);
-    expect(document.querySelector('.message p')!.hasAttribute('dir')).toBe(false); // display empty
-    engine.stop();
-    expect(document.querySelectorAll('[data-sawb]').length).toBe(0);
-  });
-
-  it('reports "partial" support so the popup never shows «موقع مدعوم ✓» prematurely', () => {
-    expect(supportLevel(claudeAdapter)).toBe('partial');
-    expect(claudeAdapter.displaySelectors).toEqual([]);
-  });
-
-  /**
-   * Regression coverage for the reported bug: with displaySelectors still
-   * empty (pending real DOM data — see docs/CLAUDE-DOM-INSPECTION.md), the
-   * engine must NEVER touch any shape of conversation content, no matter how
-   * it's structured. This is deliberately shape-agnostic (no assumption about
-   * Claude's real container names) — it proves the current safe-by-default
-   * state, not a working display feature. Replace with real fixtures once
-   * live selectors are supplied.
-   */
-  function conversationFixture(): void {
-    document.body.innerHTML = `
-      <main>
-        <div class="composer" contenteditable="true"><p>سؤال المستخدم</p></div>
-        <div data-testid="user-message"><p>مرحبا، هل يمكنك المساعدة في npm install؟</p></div>
-        <div data-testid="assistant-message">
-          <p>نعم بالتأكيد، إليك الشرح الكامل باللغة العربية.</p>
-          <p>Mixed paragraph مع مصطلح API إنجليزي و <code>const x = 1</code> inline.</p>
-          <ul><li>بند عربي أول</li><li>English item</li></ul>
-          <h3>عنوان فرعي</h3>
-          <blockquote>اقتباس عربي</blockquote>
-          <table><tbody><tr><td>القيمة</td><td>42</td></tr></tbody></table>
-          <pre><code>def hello():\n    print("hi")</code></pre>
-        </div>
-      </main>`;
-  }
-
-  it('never applies direction to Arabic assistant paragraphs (display unverified)', () => {
-    conversationFixture();
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    for (const p of Array.from(document.querySelectorAll('[data-testid="assistant-message"] p'))) {
-      expect(p.hasAttribute('dir')).toBe(false);
-    }
-    engine.stop();
-  });
-
-  it('never applies direction to the Arabic user message bubble (display unverified)', () => {
-    conversationFixture();
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    expect(document.querySelector('[data-testid="user-message"] p')!.hasAttribute('dir')).toBe(false);
-    engine.stop();
-  });
-
-  it('never touches lists, headings, blockquotes, or tables inside a response', () => {
-    conversationFixture();
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    for (const sel of ['li', 'h3', 'blockquote', 'td']) {
-      for (const el of Array.from(document.querySelectorAll(`[data-testid="assistant-message"] ${sel}`))) {
-        expect(el.hasAttribute('dir')).toBe(false);
-      }
-    }
-    engine.stop();
-  });
-
-  it('never touches inline code or code blocks inside a response', () => {
-    conversationFixture();
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    expect(document.querySelector('[data-testid="assistant-message"] code')!.hasAttribute('dir')).toBe(false);
-    expect(document.querySelector('[data-testid="assistant-message"] pre')!.hasAttribute('dir')).toBe(false);
-    engine.stop();
-  });
-
-  it('does not react to a streamed paragraph appended to a response', async () => {
-    conversationFixture();
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    const streamed = document.createElement('p');
-    streamed.textContent = 'فقرة جديدة أثناء البث';
-    document.querySelector('[data-testid="assistant-message"]')!.appendChild(streamed);
-    await flushMutations();
-    expect(streamed.hasAttribute('dir')).toBe(false);
-    engine.stop();
-  });
-
-  it('mode switching (as if via the popup) still applies no display direction', () => {
-    conversationFixture();
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    engine.update({ ...CONFIG, mode: 'rtl' });
-    expect(document.querySelector('[data-testid="assistant-message"] p')!.hasAttribute('dir')).toBe(false);
-    engine.stop();
-  });
-
-  it('disabling restores the page exactly (fields were the only thing touched)', () => {
-    conversationFixture();
-    const before = document.body.innerHTML;
-    const engine = new DirectionEngine(claudeAdapter);
-    engine.start(CONFIG);
-    expect(document.body.innerHTML).not.toBe(before); // composer was touched
-    engine.stop();
-    expect(document.body.innerHTML).toBe(before);
-    expect(document.querySelectorAll('[data-sawb]').length).toBe(0);
-  });
 });
 
 describe('Gemini adapter', () => {
