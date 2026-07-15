@@ -5,6 +5,7 @@ import { chromeStub, tick } from './helpers/setup';
 import { DEFAULT_SETTINGS, resolveEffectiveConfig } from '../src/platform/types';
 import type { SiteMap, Settings, TempOverride } from '../src/platform/types';
 import type { PageState, SawbMessage } from '../src/platform/messages';
+import type { SupportLevel } from '../src/adapters/types';
 
 const html = readFileSync('src/ui/popup/popup.html', 'utf8');
 const body = html.match(/<body>([\s\S]*)<\/body>/)![1]!;
@@ -14,8 +15,9 @@ const body = html.match(/<body>([\s\S]*)<\/body>/)![1]!;
  * apply-temp against the stub storage plus its own in-memory temp override —
  * the same contract as src/content/index.ts.
  */
-function installFakePage(host: string, supported: boolean) {
+function installFakePage(host: string, level: SupportLevel = 'full') {
   let temp: TempOverride | null = null;
+  const adapterId = level === 'generic' ? 'generic' : level === 'partial' ? 'claude' : 'chatgpt';
   chromeStub.tabs.sendMessage = async (_tabId: number, raw: unknown) => {
     const msg = raw as SawbMessage;
     if (msg.type === 'sawb/apply-temp') temp = { ...temp, ...msg.override };
@@ -24,9 +26,10 @@ function installFakePage(host: string, supported: boolean) {
     const sites = data.sites ?? {};
     return {
       host,
-      adapterId: supported ? 'chatgpt' : 'generic',
-      supported,
-      config: resolveEffectiveConfig(settings, sites[host], temp),
+      adapterId,
+      supported: level !== 'generic',
+      supportLevel: level,
+      config: resolveEffectiveConfig(settings, sites[host], temp, { genericSite: level === 'generic' }),
       hasTempOverride: temp !== null,
     } satisfies PageState;
   };
@@ -43,8 +46,8 @@ function el(id: string): HTMLElement {
   return document.getElementById(id)!;
 }
 
-async function openPopup(host = 'chatgpt.com', supported = true) {
-  const fake = installFakePage(host, supported);
+async function openPopup(host = 'chatgpt.com', level: SupportLevel = 'full') {
+  const fake = installFakePage(host, level);
   document.body.innerHTML = body;
   await initPopup(document);
   await tick();
@@ -53,7 +56,7 @@ async function openPopup(host = 'chatgpt.com', supported = true) {
 
 describe('popup rendering', () => {
   it('shows hostname, supported badge, and default state', async () => {
-    await openPopup('chatgpt.com', true);
+    await openPopup('chatgpt.com', 'full');
     expect(el('site-domain').textContent).toBe('chatgpt.com');
     expect(el('site-badge').hidden).toBe(false);
     expect(el('site-badge').textContent).toBe('موقع مدعوم ✓');
@@ -70,7 +73,7 @@ describe('popup rendering', () => {
   });
 
   it('shows the generic-mode badge «وضع عام» on unsupported sites', async () => {
-    await openPopup('example.com', false);
+    await openPopup('example.com', 'generic');
     expect(el('site-badge').textContent).toBe('وضع عام');
     expect(el('site-badge').className).toContain('badge-auto');
   });
@@ -93,7 +96,7 @@ describe('popup rendering', () => {
 
 describe('site-badge states — focused verification (Stage 2B item 1)', () => {
   it('supported hostname → «موقع مدعوم ✓» visible in teal', async () => {
-    await openPopup('chatgpt.com', true);
+    await openPopup('chatgpt.com', 'full');
     const badge = el('site-badge');
     expect(badge.hidden).toBe(false);
     expect(badge.textContent).toBe('موقع مدعوم ✓');
@@ -101,7 +104,7 @@ describe('site-badge states — focused verification (Stage 2B item 1)', () => {
   });
 
   it('unsupported site via generic adapter → «وضع عام» visible in autoBlue', async () => {
-    await openPopup('example.com', false);
+    await openPopup('example.com', 'generic');
     const badge = el('site-badge');
     expect(badge.hidden).toBe(false);
     expect(badge.textContent).toBe('وضع عام');
@@ -117,7 +120,7 @@ describe('site-badge states — focused verification (Stage 2B item 1)', () => {
   });
 
   it('a persistently disabled SUPPORTED site keeps «موقع مدعوم ✓» — never «وضع عام»', async () => {
-    await openPopup('chatgpt.com', true);
+    await openPopup('chatgpt.com', 'full');
     el('disable-toggle').click();
     await tick();
     const badge = el('site-badge');
@@ -127,7 +130,7 @@ describe('site-badge states — focused verification (Stage 2B item 1)', () => {
   });
 
   it('changing values while persistently disabled never re-enables the engine', async () => {
-    const fake = await openPopup('chatgpt.com', true);
+    const fake = await openPopup('chatgpt.com', 'full');
     el('disable-toggle').click();
     await tick();
     // Mode + display changes while disabled (controls stay editable by design)
@@ -142,6 +145,33 @@ describe('site-badge states — focused verification (Stage 2B item 1)', () => {
     expect(fake.getTemp()?.disabled ?? undefined).not.toBe(false); // temp never re-enables
     // Values were recorded for when the user re-enables.
     expect(state.config.mode).toBe('rtl');
+  });
+});
+
+describe('partial-support badge (Claude correction: fields verified, display not)', () => {
+  it('a dedicated adapter with unverified display shows partial-support, never «موقع مدعوم ✓»', async () => {
+    await openPopup('claude.ai', 'partial');
+    const badge = el('site-badge');
+    expect(badge.hidden).toBe(false);
+    expect(badge.textContent).toBe('دعم جزئي — الحقول فقط');
+    expect(badge.textContent).not.toBe('موقع مدعوم ✓');
+    // Reuses the existing badge-auto style — no new component/color.
+    expect(badge.className).toBe('badge badge-auto');
+  });
+
+  it('partial support still allows normal field control (fields are verified)', async () => {
+    await openPopup('claude.ai', 'partial');
+    expect(el('fields-toggle').getAttribute('aria-checked')).toBe('true');
+    (document.querySelector('[data-mode="rtl"]') as HTMLElement).click();
+    await tick();
+    expect(document.querySelector('[data-mode="rtl"]')!.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('a persistently disabled partial-support site keeps the partial badge, not موقع مدعوم ✓', async () => {
+    await openPopup('claude.ai', 'partial');
+    el('disable-toggle').click();
+    await tick();
+    expect(el('site-badge').textContent).toBe('دعم جزئي — الحقول فقط');
   });
 });
 

@@ -137,13 +137,25 @@ export async function initPopup(doc: Document): Promise<void> {
     $('master-toggle').setAttribute('aria-checked', String(settings.enabled));
     $('enabled-badge').hidden = !(page ? cfg.enabled : settings.enabled);
 
-    // Site bar.
+    // Site bar. «موقع مدعوم ✓» is reserved for sites where BOTH fields and
+    // displayed content are live-verified (supportLevel "full"). A dedicated
+    // adapter whose display selectors are not yet verified ("partial") gets
+    // its own badge instead of the full-support claim — same badge style
+    // (badge-auto) already used for «وضع عام», new text only.
     $('site-domain').textContent = page?.host ?? '—';
     const siteBadge = $('site-badge');
     if (page) {
       siteBadge.hidden = false;
-      siteBadge.textContent = page.supported ? 'موقع مدعوم ✓' : 'وضع عام';
-      siteBadge.className = page.supported ? 'badge badge-teal' : 'badge badge-auto';
+      if (page.supportLevel === 'full') {
+        siteBadge.textContent = 'موقع مدعوم ✓';
+        siteBadge.className = 'badge badge-teal';
+      } else if (page.supportLevel === 'partial') {
+        siteBadge.textContent = 'دعم جزئي — الحقول فقط';
+        siteBadge.className = 'badge badge-auto';
+      } else {
+        siteBadge.textContent = 'وضع عام';
+        siteBadge.className = 'badge badge-auto';
+      }
     } else {
       siteBadge.hidden = true;
     }

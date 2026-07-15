@@ -1,6 +1,7 @@
 /** Typed runtime messages between popup ⇄ content script ⇄ service worker. */
 
 import type { EffectiveConfig, Mode, TempOverride } from './types';
+import type { SupportLevel } from '../adapters/types';
 
 /** Popup/worker → content script: apply a temporary, tab-only override. */
 export interface ApplyTempMessage {
@@ -17,6 +18,13 @@ export interface PageState {
   host: string;
   adapterId: string;
   supported: boolean;
+  /**
+   * "full" (fields + display verified), "partial" (dedicated adapter, but
+   * display selectors not yet live-verified — fields still work), or
+   * "generic" (no dedicated adapter). Drives the popup's site badge; a site
+   * must never show «موقع مدعوم ✓» on "partial".
+   */
+  supportLevel: SupportLevel;
   config: EffectiveConfig;
   hasTempOverride: boolean;
 }

@@ -28,12 +28,19 @@ data is your own settings and per-site preferences, kept in
 | GitHub (github.com — issues, PRs, discussions, releases, markdown editors/previews, repo description) | ✅ | ✅ |
 | Gemini (gemini.google.com) | ✅ | ✅ |
 | Google AI Studio (aistudio.google.com) | ✅ | ✅ |
-| Claude (claude.ai) | ✅ | ⏳ pending live DOM verification |
+| Claude (claude.ai) | ✅ verified | ❌ not yet — see limitations |
 | Substack (\*.substack.com) | ✅ | ✅ (post bodies) |
 | Any other website | ✅ generic safe mode | opt-in per site |
 
 Generic mode («وضع عام») processes writing fields only and never scans page
 content unless you explicitly enable displayed-text processing for that site.
+
+The popup badge reflects exactly what's verified: **«موقع مدعوم ✓»** only
+appears once both fields and displayed content are confirmed working on a
+real, logged-in page. A site with a dedicated adapter whose display behavior
+isn't verified yet (currently Claude) shows **«دعم جزئي — الحقول فقط»**
+(partial support — fields only) instead, using the same badge style as
+generic mode. The badge never overclaims.
 
 ## Supported browsers
 
@@ -116,9 +123,16 @@ live verification (2026-07-15):
 
 ## Known limitations
 
-- **claude.ai displayed text**: the authenticated message DOM could not be
-  inspected (login + captcha); display processing ships disabled there until
-  verified. Writing fields work via universal editable detection.
+- **claude.ai displayed text**: confirmed broken live — Arabic assistant/user
+  messages stay LTR even in manual RTL mode, because the adapter has no
+  display selectors yet. Writing fields are confirmed working (root-level
+  `dir`, universal editable detection). The popup shows «دعم جزئي — الحقول
+  فقط» for claude.ai instead of the full-support badge until this is fixed.
+  Fixing it requires live DOM data from an authenticated Claude conversation
+  (assistant/user message containers, list/heading/code-block structure) that
+  could not be gathered in this environment — the extension author should
+  supply it (see `docs/CLAUDE-DOM-INSPECTION.md` for a ready-to-run
+  diagnostic script) before the display adapter can be completed.
 - **Substack custom domains** are not identifiable as Substack and fall back
   to generic mode; the Substack post editor and comment box were not
   live-inspected (login required) and rely on universal editable detection.

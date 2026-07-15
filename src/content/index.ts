@@ -10,6 +10,7 @@
  */
 
 import { resolveAdapter } from '../adapters/registry';
+import { supportLevel } from '../adapters/types';
 import { DirectionEngine } from '../core/engine';
 import { hasExtensionApis, ext } from '../platform/ext';
 import { getSnapshot, onStorageChanged, type StorageSnapshot } from '../platform/storage';
@@ -114,6 +115,7 @@ async function main(): Promise<void> {
     host,
     adapterId: adapter.id,
     supported: adapter.supported,
+    supportLevel: supportLevel(adapter),
     config: compute(),
     hasTempOverride: temp !== null,
   });
