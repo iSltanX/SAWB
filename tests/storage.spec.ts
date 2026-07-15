@@ -99,11 +99,16 @@ describe('resolveEffectiveConfig precedence', () => {
     expect(c.mode).toBe('ltr');
   });
 
-  it('site disable wins unless temp re-enables', () => {
+  it('persistent site disable always wins — temp cannot re-enable it', () => {
     expect(resolveEffectiveConfig(settings, { disabled: true, savedAt: 1 }, null).enabled).toBe(false);
     expect(
       resolveEffectiveConfig(settings, { disabled: true, savedAt: 1 }, { disabled: false }).enabled,
-    ).toBe(true);
+    ).toBe(false);
+  });
+
+  it('temporary disable works on an otherwise enabled site (tab-only)', () => {
+    expect(resolveEffectiveConfig(settings, undefined, { disabled: true }).enabled).toBe(false);
+    expect(resolveEffectiveConfig(settings, undefined, { disabled: false }).enabled).toBe(true);
   });
 
   it('global disable wins over everything', () => {

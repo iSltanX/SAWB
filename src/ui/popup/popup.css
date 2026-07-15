@@ -1,0 +1,312 @@
+/**
+ * SAWB popup — 1:1 with ExtensionPopup in the authoritative design
+ * (design-reference/src/app/App.tsx). Every dimension, color, radius and
+ * spacing below is transcribed from that component; do not restyle.
+ *
+ * One intentional difference, reported at checkpoint: the mockup draws the
+ * popup as a floating card (radius 20, outer border + shadow) on a showcase
+ * page; a real extension popup's window frame is owned by the browser, so
+ * those frame styles do not apply here. Interior styling is identical.
+ */
+
+@import '../fonts.css';
+@import '../tokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 340px;
+  font-family: var(--sawb-font-ui);
+  direction: rtl;
+  background: var(--sawb-bg);
+  color: var(--sawb-text);
+  overflow: hidden;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: var(--sawb-font-ui);
+  cursor: pointer;
+}
+
+/* Visible focus (design brief: «حالات focus مرئية بوضوح») using the design's
+   --ring token. The prototype removed outlines; the brief overrules it. */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* ── Badges (fontSize 10 / 600 / padding 2px 8px / radius 20) ── */
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.badge-teal {
+  color: var(--sawb-teal);
+  background: var(--sawb-teal-tint);
+}
+
+/* Generic-mode badge «وضع عام» — approved: components-tab badge pattern
+   (color + '22' tint) with the existing auto color. */
+.badge-auto {
+  color: var(--sawb-auto-blue);
+  background: #5870B022;
+}
+
+/* ── Toggle (40×22, r11, knob 16 white, on: knob right) ── */
+.toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  background: var(--sawb-toggle-off);
+  position: relative;
+  border: none;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.toggle .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: auto;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+}
+
+.toggle[aria-checked='true'] {
+  background: var(--toggle-color, var(--sawb-navy));
+}
+
+.toggle[aria-checked='true'] .knob {
+  left: auto;
+  right: 3px;
+}
+
+.toggle-teal {
+  --toggle-color: var(--sawb-teal);
+}
+
+.toggle-copper {
+  --toggle-color: var(--sawb-copper);
+}
+
+/* ── Header ── */
+.popup-header {
+  background: var(--sawb-card);
+  border-bottom: 1px solid var(--sawb-border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Site bar ── */
+.site-bar {
+  background: var(--sawb-section);
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-icon {
+  display: flex;
+  color: var(--sawb-muted);
+}
+
+.site-domain {
+  font-size: 12px;
+  color: var(--sawb-muted);
+  direction: ltr;
+  font-family: var(--sawb-font-mono);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Mode selector ── */
+.mode-block {
+  padding: 14px 16px 6px;
+}
+
+.section-label {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mode-selector {
+  display: flex;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid var(--sawb-border);
+}
+
+.mode-selector button {
+  flex: 1;
+  padding: 9px 4px;
+  font-size: 13px;
+  font-weight: 400;
+  background: transparent;
+  color: var(--sawb-muted);
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-selector button + button {
+  border-left: 1px solid var(--sawb-border);
+}
+
+.mode-selector button[aria-checked='true'] {
+  font-weight: 600;
+  color: #fff;
+}
+
+.mode-selector button[aria-checked='true'][data-mode='auto'] {
+  background: var(--sawb-navy);
+}
+
+.mode-selector button[aria-checked='true'][data-mode='rtl'] {
+  background: var(--sawb-teal);
+}
+
+.mode-selector button[aria-checked='true'][data-mode='ltr'] {
+  background: var(--sawb-copper);
+}
+
+.mode-desc {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  margin-top: 7px;
+  min-height: 15px;
+}
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--sawb-border);
+  margin: 4px 16px;
+}
+
+/* ── Rows ── */
+.toggle-rows {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.row-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.row-icon {
+  display: flex;
+  color: var(--sawb-muted);
+  flex-shrink: 0;
+}
+
+.row-label {
+  font-size: 13px;
+  color: var(--sawb-text);
+  font-weight: 400;
+}
+
+.row-label-strong {
+  font-weight: 500;
+}
+
+.row-sub {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  margin-top: 1px;
+}
+
+/* ── Site actions card ── */
+.site-actions {
+  margin: 0 12px 14px;
+  background: var(--sawb-section);
+  border-radius: 14px;
+  padding: 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Footer ── */
+.popup-footer {
+  border-top: 1px solid var(--sawb-border);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.popup-footer button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sawb-muted);
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+}
+
+.popup-footer button span {
+  display: flex;
+}
+
+/* ── Page-unavailable state (no content script on this page) ──
+   Not a designed state: the popup cannot control chrome:// or store pages.
+   Controls are dimmed and inert; master toggle and settings stay usable. */
+body.page-unavailable #page-controls {
+  opacity: 0.5;
+  pointer-events: none;
+}

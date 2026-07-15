@@ -61,8 +61,24 @@ await build({
   },
 });
 
-// 3. Static assets.
+// 3. Popup — HTML page with hashed assets (fonts referenced by CSS only;
+// unused font faces are never copied).
+await build({
+  ...common,
+  root: path.join(root, 'src/ui/popup'),
+  base: './',
+  build: {
+    ...common.build,
+    rollupOptions: {
+      input: path.join(root, 'src/ui/popup/popup.html'),
+    },
+  },
+});
+
+// 4. Static assets.
 await cp(path.join(root, 'manifest/manifest.json'), path.join(dist, 'manifest.json'));
+// OFL requires the font license to accompany distributed font files.
+await cp(path.join(root, 'THIRD_PARTY_NOTICES.md'), path.join(dist, 'THIRD_PARTY_NOTICES.md'));
 await mkdir(path.join(dist, 'icons'), { recursive: true });
 for (const size of [16, 32, 48, 128]) {
   await cp(
@@ -77,7 +93,7 @@ const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 if (manifest.version !== pkg.version) {
   throw new Error(`Version mismatch: manifest ${manifest.version} != package ${pkg.version}`);
 }
-for (const file of ['content.js', 'worker.js', 'icons/icon-128.png']) {
+for (const file of ['content.js', 'worker.js', 'icons/icon-128.png', 'popup.html']) {
   await readFile(path.join(dist, file));
 }
 console.log(`Built SAWB v${manifest.version} → dist/`);

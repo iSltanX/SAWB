@@ -59,7 +59,10 @@ export function resolveEffectiveConfig(
   site: SitePref | undefined,
   temp: TempOverride | null,
 ): EffectiveConfig {
-  const disabled = temp?.disabled ?? site?.disabled ?? false;
+  // Persistent site disable (popup) and temporary disable (shortcut) are
+  // strictly separate: persistent always wins; temporary is additive-only —
+  // it can never re-enable a persistently disabled site.
+  const disabled = (site?.disabled ?? false) || (temp?.disabled ?? false);
   return {
     enabled: settings.enabled && !disabled,
     mode: temp?.mode ?? site?.mode ?? settings.defaultMode,

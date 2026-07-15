@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="system">
+<head>
+  <meta charset="UTF-8">
+  <title>صَوْب — SAWB</title>
+  <script type="module" src="./popup.ts"></script>
+</head>
+<body>
+  <!-- Header: wordmark + enabled badge + master toggle -->
+  <header class="popup-header">
+    <div id="wordmark"></div>
+    <div class="header-controls">
+      <span id="enabled-badge" class="badge badge-teal">مفعّلة</span>
+      <button id="master-toggle" class="toggle toggle-teal" role="switch" aria-checked="true" aria-label="تفعيل الإضافة">
+        <span class="knob"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Site bar: domain + supported/generic badge -->
+  <div class="site-bar">
+    <span id="site-icon" class="site-icon"></span>
+    <span id="site-domain" class="site-domain">—</span>
+    <span id="site-badge" class="badge badge-teal" hidden>موقع مدعوم ✓</span>
+  </div>
+
+  <div id="page-controls">
+    <!-- Mode selector -->
+    <section class="mode-block">
+      <p class="section-label" id="mode-label">اتجاه الكتابة</p>
+      <div class="mode-selector" role="radiogroup" aria-labelledby="mode-label">
+        <button type="button" data-mode="auto" role="radio" aria-checked="false">تلقائي</button>
+        <button type="button" data-mode="rtl" role="radio" aria-checked="false">RTL ←</button>
+        <button type="button" data-mode="ltr" role="radio" aria-checked="false">LTR →</button>
+      </div>
+      <p id="mode-desc" class="mode-desc"></p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Field / display toggles -->
+    <section class="toggle-rows">
+      <div class="row">
+        <div class="row-text">
+          <div>
+            <p class="row-label row-label-strong" id="fields-label">حقول الكتابة</p>
+            <p class="row-sub">تطبيق الاتجاه على صناديق الإدخال</p>
+          </div>
+        </div>
+        <button id="fields-toggle" class="toggle" role="switch" aria-checked="true" aria-labelledby="fields-label">
+          <span class="knob"></span>
+        </button>
+      </div>
+      <div class="row">
+        <div class="row-text">
+          <div>
+            <p class="row-label row-label-strong" id="display-label">النصوص المعروضة</p>
+            <p class="row-sub">تطبيق الاتجاه على النص القابل للقراءة</p>
+          </div>
+        </div>
+        <button id="display-toggle" class="toggle" role="switch" aria-checked="false" aria-labelledby="display-label">
+          <span class="knob"></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Site actions -->
+    <section class="site-actions">
+      <div class="row">
+        <div class="row-text">
+          <span class="row-icon" id="save-icon"></span>
+          <div><p class="row-label" id="save-label">حفظ التفضيل لهذا الموقع</p></div>
+        </div>
+        <button id="save-toggle" class="toggle" role="switch" aria-checked="false" aria-labelledby="save-label">
+          <span class="knob"></span>
+        </button>
+      </div>
+      <div class="row">
+        <div class="row-text">
+          <span class="row-icon" id="disable-icon"></span>
+          <div><p class="row-label" id="disable-label">تعطيل الإضافة في هذا الموقع</p></div>
+        </div>
+        <button id="disable-toggle" class="toggle toggle-copper" role="switch" aria-checked="false" aria-labelledby="disable-label">
+          <span class="knob"></span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="popup-footer">
+    <button id="open-settings" type="button">
+      <span id="settings-icon"></span>
+      الإعدادات المتقدمة
+    </button>
+  </footer>
+</body>
+</html>
