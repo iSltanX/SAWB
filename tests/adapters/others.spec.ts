@@ -13,6 +13,9 @@ const CONFIG: EffectiveConfig = {
   fields: true,
   display: true,
   showIndicator: false,
+  readingComfort: false,
+  fontScale: 1.08,
+  lineHeight: 1.8,
 };
 
 describe('registry resolution for all supported sites', () => {

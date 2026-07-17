@@ -229,6 +229,8 @@ describe('settings behavior', () => {
       'حقول الكتابة',
       'النصوص المعروضة',
       'إظهار مؤشر الاتجاه',
+      'راحة القراءة',
+      'تفعيل راحة القراءة',
       'المظهر',
     ]);
   });
@@ -280,5 +282,100 @@ describe('saved sites list', () => {
     document.querySelector<HTMLElement>('[data-section="sites"]')!.click();
     expect(el('sites-count').textContent).toBe('0 مواقع');
     expect(document.querySelectorAll('.site-row').length).toBe(0);
+  });
+
+  it('a disabled site shows a reactivate button; a non-disabled one does not', async () => {
+    await openOptions({ sites: SITES });
+    document.querySelector<HTMLElement>('[data-section="sites"]')!.click();
+    const rows = Array.from(document.querySelectorAll('.site-row'));
+    const byDomain = new Map(rows.map((r) => [r.querySelector('.site-row-domain')!.textContent, r]));
+    expect(byDomain.get('example.com')!.querySelector('.site-reactivate')).not.toBeNull();
+    expect(byDomain.get('chatgpt.com')!.querySelector('.site-reactivate')).toBeNull();
+  });
+
+  it('reactivating a site with no other saved values deletes the entry entirely', async () => {
+    await openOptions({ sites: SITES });
+    document.querySelector<HTMLElement>('[data-section="sites"]')!.click();
+    const row = Array.from(document.querySelectorAll('.site-row')).find(
+      (r) => r.querySelector('.site-row-domain')!.textContent === 'example.com',
+    )!;
+    row.querySelector<HTMLElement>('.site-reactivate')!.click();
+    await tick();
+    const sites = (chromeStub.storage.local.data as { sites?: SiteMap }).sites!;
+    expect(sites['example.com']).toBeUndefined();
+  });
+
+  it('reactivating a site that also has other saved values keeps them and drops only disabled', async () => {
+    const sitesWithBoth: SiteMap = {
+      'chatgpt.com': { mode: 'rtl', readingComfort: true, disabled: true, savedAt: 1 },
+    };
+    await openOptions({ sites: sitesWithBoth });
+    document.querySelector<HTMLElement>('[data-section="sites"]')!.click();
+    document.querySelector<HTMLElement>('.site-reactivate')!.click();
+    await tick();
+    const sites = (chromeStub.storage.local.data as { sites?: SiteMap }).sites!;
+    expect(sites['chatgpt.com']).toMatchObject({ mode: 'rtl', readingComfort: true });
+    expect(sites['chatgpt.com']!.disabled).toBeUndefined();
+  });
+});
+
+describe('reading comfort settings (Draft 1.0)', () => {
+  it('renders off by default with the documented starting values, sliders disabled', async () => {
+    await openOptions();
+    expect(el('rc-toggle').getAttribute('aria-checked')).toBe('false');
+    expect((el('rc-font-scale') as HTMLInputElement).value).toBe('108');
+    expect(el('rc-font-scale-value').textContent).toBe('108%');
+    expect((el('rc-line-height') as HTMLInputElement).value).toBe('1.8');
+    expect(el('rc-line-height-value').textContent).toBe('1.8');
+    expect((el('rc-font-scale') as HTMLInputElement).disabled).toBe(true);
+    expect((el('rc-line-height') as HTMLInputElement).disabled).toBe(true);
+    expect(el('reading-comfort-block').classList.contains('rc-disabled')).toBe(true);
+  });
+
+  it('toggling the master switch persists it and enables the sliders', async () => {
+    await openOptions();
+    el('rc-toggle').click();
+    await tick();
+    expect(storedSettings()?.readingComfort).toBe(true);
+    expect(el('rc-toggle').getAttribute('aria-checked')).toBe('true');
+    expect((el('rc-font-scale') as HTMLInputElement).disabled).toBe(false);
+    expect(el('reading-comfort-block').classList.contains('rc-disabled')).toBe(false);
+  });
+
+  it('changing the font-size slider persists rcFontScale as a fraction', async () => {
+    await openOptions();
+    const input = el('rc-font-scale') as HTMLInputElement;
+    input.value = '120';
+    input.dispatchEvent(new Event('input'));
+    expect(el('rc-font-scale-value').textContent).toBe('120%'); // live label, no write yet
+    input.dispatchEvent(new Event('change'));
+    await tick();
+    expect(storedSettings()?.rcFontScale).toBe(1.2);
+  });
+
+  it('changing the line-height slider persists rcLineHeight', async () => {
+    await openOptions();
+    const input = el('rc-line-height') as HTMLInputElement;
+    input.value = '2';
+    input.dispatchEvent(new Event('input'));
+    expect(el('rc-line-height-value').textContent).toBe('2');
+    input.dispatchEvent(new Event('change'));
+    await tick();
+    expect(storedSettings()?.rcLineHeight).toBe(2);
+  });
+
+  it('the reset button restores the documented defaults', async () => {
+    await openOptions();
+    el('rc-toggle').click();
+    await tick();
+    const fontInput = el('rc-font-scale') as HTMLInputElement;
+    fontInput.value = '130';
+    fontInput.dispatchEvent(new Event('change'));
+    await tick();
+    el('rc-reset').click();
+    await tick();
+    expect(storedSettings()?.readingComfort).toBe(false);
+    expect(storedSettings()?.rcFontScale).toBe(1.08);
+    expect(storedSettings()?.rcLineHeight).toBe(1.8);
   });
 });

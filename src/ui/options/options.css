@@ -215,6 +215,65 @@ button {
   margin-top: 3px;
 }
 
+/* ── Reading comfort («راحة القراءة») ── */
+.reading-comfort-block .setting-rows {
+  margin-bottom: 14px;
+}
+
+.rc-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rc-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rc-slider-label {
+  font-size: 12px;
+  color: var(--sawb-text);
+  width: 84px;
+  flex-shrink: 0;
+}
+
+.rc-slider-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--sawb-teal);
+}
+
+.rc-slider-value {
+  font-size: 11px;
+  color: var(--sawb-muted);
+  width: 40px;
+  text-align: left;
+  direction: ltr;
+  flex-shrink: 0;
+}
+
+.rc-reset-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sawb-muted);
+  background: transparent;
+  border: 1px solid var(--sawb-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.rc-reset-btn:hover {
+  background: var(--sawb-section);
+}
+
+/* Sliders stay visible but inert while the master toggle is off. */
+.reading-comfort-block.rc-disabled .rc-sliders {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* ── Saved sites ── */
 .sites-header {
   display: flex;
@@ -308,6 +367,17 @@ button {
   border: none;
   padding: 4px;
   display: flex;
+}
+
+.site-reactivate {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sawb-teal);
+  background: var(--sawb-teal-tint);
+  border: none;
+  border-radius: 20px;
+  padding: 4px 10px;
+  white-space: nowrap;
 }
 
 /* ── Shortcuts ── */

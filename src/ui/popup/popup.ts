@@ -43,6 +43,10 @@ const MODE_DESC: Record<Mode, string> = {
   ltr: 'All input fields forced to LTR direction',
 };
 
+/** Reading-comfort row subtitle: what it does, or why it cannot act yet. */
+const RC_SUB = 'تحسين حجم الخط وتباعد الأسطر للنص العربي المعروض';
+const RC_SUB_NEEDS_DISPLAY = 'يتطلب تفعيل النصوص المعروضة';
+
 function applyTheme(doc: Document, theme: Theme): void {
   doc.documentElement.setAttribute('data-theme', theme);
 }
@@ -52,12 +56,14 @@ function compactPref(pref: {
   mode?: Mode | undefined;
   fields?: boolean | undefined;
   display?: boolean | undefined;
+  readingComfort?: boolean | undefined;
   disabled?: boolean | undefined;
 }): Omit<SitePref, 'savedAt'> {
   const out: Omit<SitePref, 'savedAt'> = {};
   if (pref.mode !== undefined) out.mode = pref.mode;
   if (pref.fields !== undefined) out.fields = pref.fields;
   if (pref.display !== undefined) out.display = pref.display;
+  if (pref.readingComfort !== undefined) out.readingComfort = pref.readingComfort;
   if (pref.disabled) out.disabled = true;
   return out;
 }
@@ -115,7 +121,13 @@ export async function initPopup(doc: Document): Promise<void> {
   const sitePref = (): SitePref | undefined => (page ? snapshot.sites[page.host] : undefined);
   const isSaved = (): boolean => {
     const p = sitePref();
-    return !!p && (p.mode !== undefined || p.fields !== undefined || p.display !== undefined);
+    return (
+      !!p &&
+      (p.mode !== undefined ||
+        p.fields !== undefined ||
+        p.display !== undefined ||
+        p.readingComfort !== undefined)
+    );
   };
   const isSiteDisabled = (): boolean => sitePref()?.disabled === true;
 
@@ -130,6 +142,9 @@ export async function initPopup(doc: Document): Promise<void> {
       fields: settings.applyToFields,
       display: settings.applyToDisplay,
       showIndicator: settings.showIndicator,
+      readingComfort: false,
+      fontScale: settings.rcFontScale,
+      lineHeight: settings.rcLineHeight,
     };
 
     // Header: master toggle is the global enabled state; the «مفعّلة» badge
@@ -169,11 +184,22 @@ export async function initPopup(doc: Document): Promise<void> {
     // Toggles — field/display/save tint with the active mode color (mockup:
     // Toggle color defaults to modeColor(mode)); disable stays copper.
     const modeColor = MODE_COLOR[cfg.mode];
-    for (const id of ['fields-toggle', 'display-toggle', 'save-toggle']) {
+    for (const id of ['fields-toggle', 'display-toggle', 'save-toggle', 'reading-comfort-toggle']) {
       $(id).style.setProperty('--toggle-color', modeColor);
     }
     $('fields-toggle').setAttribute('aria-checked', String(cfg.fields));
     $('display-toggle').setAttribute('aria-checked', String(cfg.display));
+
+    // Reading comfort builds on displayed-text processing, so with display off
+    // the toggle cannot act: it is marked disabled and says why, rather than
+    // silently swallowing clicks. `cfg.readingComfort` (display-gated) drives
+    // the shown state; the stored request behind it is untouched and returns
+    // on its own the moment display is switched back on.
+    $('reading-comfort-toggle').setAttribute('aria-checked', String(cfg.readingComfort));
+    $('reading-comfort-toggle').setAttribute('aria-disabled', String(!cfg.display));
+    $('reading-comfort-row').classList.toggle('row-disabled', !cfg.display);
+    $('reading-comfort-sub').textContent = cfg.display ? RC_SUB : RC_SUB_NEEDS_DISPLAY;
+
     $('save-toggle').setAttribute('aria-checked', String(isSaved()));
     $('disable-toggle').setAttribute('aria-checked', String(isSiteDisabled()));
   }
@@ -193,6 +219,7 @@ export async function initPopup(doc: Document): Promise<void> {
     mode?: Mode;
     fields?: boolean;
     display?: boolean;
+    readingComfort?: boolean;
   }): Promise<void> {
     if (!page) return;
     if (isSaved()) {
@@ -203,6 +230,7 @@ export async function initPopup(doc: Document): Promise<void> {
           mode: patch.mode ?? p?.mode,
           fields: patch.fields ?? p?.fields,
           display: patch.display ?? p?.display,
+          readingComfort: patch.readingComfort ?? p?.readingComfort,
           disabled: p?.disabled,
         }),
       );
@@ -231,6 +259,16 @@ export async function initPopup(doc: Document): Promise<void> {
     const cfg = page?.config;
     if (cfg) void changeSetting({ display: !cfg.display });
   });
+  $('reading-comfort-toggle').addEventListener('click', () => {
+    if (!page) return;
+    // Inert while display is off: the control is marked aria-disabled, so it
+    // must not mutate storage behind a UI that cannot show the result.
+    if (!page.config.display) return;
+    // Flip the RAW request (temp ← site ← global), never the display-gated
+    // EffectiveConfig.readingComfort: the two diverge whenever display is off,
+    // and flipping the gated value could never turn a stored request back off.
+    void changeSetting({ readingComfort: !page.rcRequested });
+  });
 
   $('save-toggle').addEventListener('click', () => {
     void (async () => {
@@ -240,9 +278,17 @@ export async function initPopup(doc: Document): Promise<void> {
         // Turn saving off: drop persisted values (keep a persistent disable
         // if present) and keep the current state as a tab-only override so
         // the page doesn't jump; defaults return on reload (requirement 6).
+        // readingComfort mirrors the RAW request (page.rcRequested), not the
+        // display-gated cfg.readingComfort — otherwise a display=false page
+        // would silently downgrade a true request to false in the process.
         if (isSiteDisabled()) await saveSitePref(page.host, { disabled: true });
         else await deleteSitePref(page.host);
-        await sendTemp({ mode: cfg.mode, fields: cfg.fields, display: cfg.display });
+        await sendTemp({
+          mode: cfg.mode,
+          fields: cfg.fields,
+          display: cfg.display,
+          readingComfort: page.rcRequested,
+        });
       } else {
         await saveSitePref(
           page.host,
@@ -250,6 +296,7 @@ export async function initPopup(doc: Document): Promise<void> {
             mode: cfg.mode,
             fields: cfg.fields,
             display: cfg.display,
+            readingComfort: page.rcRequested,
             disabled: isSiteDisabled(),
           }),
         );
@@ -266,7 +313,12 @@ export async function initPopup(doc: Document): Promise<void> {
         if (isSaved()) {
           await saveSitePref(
             page.host,
-            compactPref({ mode: p?.mode, fields: p?.fields, display: p?.display }),
+            compactPref({
+              mode: p?.mode,
+              fields: p?.fields,
+              display: p?.display,
+              readingComfort: p?.readingComfort,
+            }),
           );
         } else {
           await deleteSitePref(page.host);
@@ -279,6 +331,7 @@ export async function initPopup(doc: Document): Promise<void> {
             mode: p?.mode,
             fields: p?.fields,
             display: p?.display,
+            readingComfort: p?.readingComfort,
             disabled: true,
           }),
         );

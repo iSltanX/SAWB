@@ -155,6 +155,18 @@ button {
   margin-top: 1px;
 }
 
+/* Reading comfort needs displayed-text processing; while that is off the row
+   is dimmed and its toggle is inert (aria-disabled, ignored on click). */
+.row.row-disabled .row-label,
+.row.row-disabled .row-sub {
+  opacity: 0.55;
+}
+
+.row.row-disabled .toggle {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ── Site actions card ── */
 .site-actions {
   margin: 0 12px 14px;

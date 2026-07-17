@@ -12,10 +12,11 @@ import {
   deleteSitePref,
   getSnapshot,
   onStorageChanged,
+  saveSitePref,
   setSettings,
   type StorageSnapshot,
 } from '../../platform/storage';
-import type { Mode, Theme } from '../../platform/types';
+import type { Mode, SitePref, Theme } from '../../platform/types';
 import { resolveAdapter } from '../../adapters/registry';
 import { logoWordmarkHtml, logoMarkSvg } from '../logo';
 import { iconSvg, type IconName } from '../icons';
@@ -48,6 +49,31 @@ const PRIVACY_CHECKS = [
   'التفضيلات في chrome.storage.local فقط',
   'لا اتصال بخوادم خارجية إطلاقًا',
 ];
+
+/**
+ * Re-enable a disabled site using the EXISTING SitePref data only — no
+ * second store, no exceptions list (approved decision 9). Carries forward
+ * whatever other preferences were saved (mode/fields/display/readingComfort)
+ * and drops only `disabled`; if nothing else was saved, the entry is deleted
+ * entirely (identical to the popup's disable-toggle re-enable path).
+ */
+function reactivateSite(host: string, pref: SitePref): void {
+  const hasOtherPrefs =
+    pref.mode !== undefined ||
+    pref.fields !== undefined ||
+    pref.display !== undefined ||
+    pref.readingComfort !== undefined;
+  if (hasOtherPrefs) {
+    const out: Omit<SitePref, 'savedAt'> = {};
+    if (pref.mode !== undefined) out.mode = pref.mode;
+    if (pref.fields !== undefined) out.fields = pref.fields;
+    if (pref.display !== undefined) out.display = pref.display;
+    if (pref.readingComfort !== undefined) out.readingComfort = pref.readingComfort;
+    void saveSitePref(host, out);
+  } else {
+    void deleteSitePref(host);
+  }
+}
 
 export async function initOptions(doc: Document, overrides: OptionsOverrides = {}): Promise<void> {
   const $ = (id: string): HTMLElement => {
@@ -138,6 +164,19 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
     $('display-toggle').setAttribute('aria-checked', String(settings.applyToDisplay));
     $('indicator-toggle').setAttribute('aria-checked', String(settings.showIndicator));
 
+    // Reading comfort — master toggle + global size/line-height sliders.
+    $('rc-toggle').setAttribute('aria-checked', String(settings.readingComfort));
+    $('reading-comfort-block').classList.toggle('rc-disabled', !settings.readingComfort);
+    const fontScaleInput = $('rc-font-scale') as HTMLInputElement;
+    const lineHeightInput = $('rc-line-height') as HTMLInputElement;
+    const fontScalePercent = Math.round(settings.rcFontScale * 100);
+    fontScaleInput.value = String(fontScalePercent);
+    fontScaleInput.disabled = !settings.readingComfort;
+    $('rc-font-scale-value').textContent = `${fontScalePercent}%`;
+    lineHeightInput.value = String(settings.rcLineHeight);
+    lineHeightInput.disabled = !settings.readingComfort;
+    $('rc-line-height-value').textContent = String(settings.rcLineHeight);
+
     // Saved sites.
     const entries = Object.entries(sites).sort(([a], [b]) => a.localeCompare(b));
     $('sites-count').textContent = `${entries.length} مواقع`;
@@ -175,6 +214,14 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
         const mode = pref.mode ?? 'auto';
         badge.className = `site-mode-badge mode-${mode}`;
         badge.textContent = MODE_LABEL[mode];
+      }
+      if (pref.disabled) {
+        const reactivate = doc.createElement('button');
+        reactivate.type = 'button';
+        reactivate.className = 'site-reactivate';
+        reactivate.textContent = 'إعادة التفعيل';
+        reactivate.addEventListener('click', () => reactivateSite(host, pref));
+        actions.append(reactivate);
       }
       const del = doc.createElement('button');
       del.type = 'button';
@@ -223,6 +270,31 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
   });
   $('indicator-toggle').addEventListener('click', () => {
     void setSettings({ showIndicator: !snapshot.settings.showIndicator });
+  });
+
+  // Reading comfort — master toggle; live label updates on drag, storage
+  // writes only on release (change) to avoid flooding chrome.storage.local.
+  $('rc-toggle').addEventListener('click', () => {
+    void setSettings({ readingComfort: !snapshot.settings.readingComfort });
+  });
+  const fontScaleInput = $('rc-font-scale') as HTMLInputElement;
+  const fontScaleValue = $('rc-font-scale-value');
+  fontScaleInput.addEventListener('input', () => {
+    fontScaleValue.textContent = `${fontScaleInput.value}%`;
+  });
+  fontScaleInput.addEventListener('change', () => {
+    void setSettings({ rcFontScale: Number(fontScaleInput.value) / 100 });
+  });
+  const lineHeightInput = $('rc-line-height') as HTMLInputElement;
+  const lineHeightValue = $('rc-line-height-value');
+  lineHeightInput.addEventListener('input', () => {
+    lineHeightValue.textContent = lineHeightInput.value;
+  });
+  lineHeightInput.addEventListener('change', () => {
+    void setSettings({ rcLineHeight: Number(lineHeightInput.value) });
+  });
+  $('rc-reset').addEventListener('click', () => {
+    void setSettings({ readingComfort: false, rcFontScale: 1.08, rcLineHeight: 1.8 });
   });
 
   render();

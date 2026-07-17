@@ -11,6 +11,9 @@ const CONFIG: EffectiveConfig = {
   fields: true,
   display: true,
   showIndicator: false,
+  readingComfort: false,
+  fontScale: 1.08,
+  lineHeight: 1.8,
 };
 
 /**

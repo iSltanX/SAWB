@@ -27,6 +27,14 @@ export interface PageState {
   supportLevel: SupportLevel;
   config: EffectiveConfig;
   hasTempOverride: boolean;
+  /**
+   * The raw «راحة القراءة» request (temp ← site ← global), BEFORE the
+   * display-gate applied in `config.readingComfort`. The popup's quick
+   * toggle flips this value, never the display-gated one — otherwise a
+   * display=false page would make the toggle only ever able to turn the
+   * stored request back ON, never off (see resolveReadingComfortRequest).
+   */
+  rcRequested: boolean;
 }
 
 /** Worker → content script: keyboard command. */

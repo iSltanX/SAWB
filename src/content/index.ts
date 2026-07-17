@@ -16,6 +16,7 @@ import { hasExtensionApis, ext } from '../platform/ext';
 import { getSnapshot, onStorageChanged, type StorageSnapshot } from '../platform/storage';
 import {
   resolveEffectiveConfig,
+  resolveReadingComfortRequest,
   type EffectiveConfig,
   type TempOverride,
 } from '../platform/types';
@@ -118,6 +119,9 @@ async function main(): Promise<void> {
     supportLevel: supportLevel(adapter),
     config: compute(),
     hasTempOverride: temp !== null,
+    rcRequested: resolveReadingComfortRequest(snapshot.settings, snapshot.sites[host], temp, {
+      genericSite: !adapter.supported,
+    }),
   });
 
   sync();

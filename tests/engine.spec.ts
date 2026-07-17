@@ -12,6 +12,9 @@ const CONFIG: EffectiveConfig = {
   fields: true,
   display: true,
   showIndicator: false,
+  readingComfort: false,
+  fontScale: 1.08,
+  lineHeight: 1.8,
 };
 
 /** A minimal ChatGPT-shaped page: ProseMirror composer + message thread. */
@@ -194,5 +197,124 @@ describe('DirectionEngine with the generic adapter', () => {
     await flushMutations();
     expect(textarea.getAttribute('dir')).toBe('auto');
     engine.stop();
+  });
+});
+
+describe('DirectionEngine — reading-comfort typography (Draft 1.0)', () => {
+  const RC_CONFIG: EffectiveConfig = { ...CONFIG, readingComfort: true, fontScale: 1.08, lineHeight: 1.8 };
+
+  it('applies typography to RTL message blocks when active', () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    engine.start(RC_CONFIG);
+    const markdownPs = document.querySelectorAll('.markdown > p');
+    expect((markdownPs[0] as HTMLElement).style.fontSize).toBe('108%'); // Arabic paragraph
+    expect((markdownPs[1] as HTMLElement).style.fontSize).toBe(''); // English paragraph untouched
+    engine.stop();
+  });
+
+  it('reading comfort requires display=true: no typography when display is off', () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    // display:false forces readingComfort false upstream (resolveEffectiveConfig);
+    // this exercises the engine assuming that already-gated config directly.
+    engine.start({ ...RC_CONFIG, display: false, readingComfort: false });
+    const p = document.querySelector('.markdown > p')!;
+    expect(p.hasAttribute('dir')).toBe(false); // display itself is off
+    expect((p as HTMLElement).style.fontSize).toBe('');
+    engine.stop();
+  });
+
+  it('disabling reading comfort alone removes typography but keeps direction', () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    engine.start(RC_CONFIG);
+    const p = document.querySelector('.markdown > p')!;
+    expect((p as HTMLElement).style.fontSize).toBe('108%');
+
+    engine.update({ ...RC_CONFIG, readingComfort: false });
+    expect((p as HTMLElement).style.fontSize).toBe('');
+    expect(p.getAttribute('dir')).toBe('auto'); // direction untouched
+    engine.stop();
+  });
+
+  it('disabling the site entirely restores both direction and typography', () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    const before = document.body.innerHTML;
+    engine.start(RC_CONFIG);
+    expect((document.querySelector('.markdown > p') as HTMLElement).style.fontSize).toBe('108%');
+    engine.stop();
+    expect(document.body.innerHTML).toBe(before);
+  });
+
+  it('a block that streams from Arabic to English loses typography but keeps its direction handling', async () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    engine.start(RC_CONFIG);
+    const markdown = document.querySelector('.markdown')!;
+    const p = document.createElement('p');
+    p.textContent = 'فقرة عربية أثناء البث';
+    markdown.appendChild(p);
+    await flushMutations();
+    expect(p.getAttribute('dir')).toBe('auto');
+    expect((p as HTMLElement).style.fontSize).toBe('108%');
+
+    p.textContent = 'Now the stream continues in English';
+    await flushMutations();
+    expect(p.getAttribute('dir')).toBe('auto');
+    expect((p as HTMLElement).style.fontSize).toBe('');
+    engine.stop();
+  });
+
+  it('changing font scale / line height updates existing typography live', () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    engine.start(RC_CONFIG);
+    const p = document.querySelector('.markdown > p')!;
+    expect((p as HTMLElement).style.fontSize).toBe('108%');
+    engine.update({ ...RC_CONFIG, fontScale: 1.2, lineHeight: 2.0 });
+    expect((p as HTMLElement).style.fontSize).toBe('120%');
+    expect((p as HTMLElement).style.lineHeight).toBe('2');
+    engine.stop();
+  });
+
+  it('adds no new DOM attribute for typography — only the existing data-sawb marker', () => {
+    chatgptFixture();
+    const engine = new DirectionEngine(chatgptAdapter);
+    engine.start(RC_CONFIG);
+    const p = document.querySelector('.markdown > p')!;
+    expect(p.getAttributeNames()).not.toContain('data-sawb-rc');
+    expect(p.getAttribute(MARK_ATTR)).toBe('display');
+    engine.stop();
+  });
+
+  it('nested roots remain stable across applyAll and streaming batches', async () => {
+    // <main> and <article> both match the generic adapter and both fall back to
+    // [root] (no block children), so the scale could compound between them.
+    document.body.innerHTML = '<main><article>نص عربي بلا فقرات</article></main>';
+    const engine = new DirectionEngine(genericAdapter);
+    engine.start({ ...RC_CONFIG, fields: false });
+    const main = document.querySelector('main')! as HTMLElement;
+    const article = document.querySelector('article')! as HTMLElement;
+
+    const scaled = () =>
+      [main.style.fontSize, article.style.fontSize].filter((v) => v === '108%').length;
+    expect(scaled()).toBe(1); // exactly one owner after the initial pass
+
+    // A streaming batch that re-enters both roots must not add a second scale,
+    // regardless of the order the batch happens to visit them in.
+    article.append(document.createTextNode(' مزيد من النص'));
+    await flushMutations();
+    expect(scaled()).toBe(1);
+
+    engine.update({ ...RC_CONFIG, fields: false, fontScale: 1.2 });
+    const scaled120 = () =>
+      [main.style.fontSize, article.style.fontSize].filter((v) => v === '120%').length;
+    expect(scaled120()).toBe(1);
+
+    engine.stop();
+    expect(main.style.fontSize).toBe('');
+    expect(article.style.fontSize).toBe('');
   });
 });

@@ -84,6 +84,34 @@
               </button>
             </div>
           </div>
+          <div class="control-block reading-comfort-block" id="reading-comfort-block">
+            <p class="control-label" id="rc-heading">راحة القراءة</p>
+            <p class="control-hint">يحسّن حجم الخط وتباعد الأسطر للنص العربي المعروض — لا يغيّر النص ولا الإنجليزية</p>
+            <div class="setting-rows">
+              <div class="setting-row">
+                <div>
+                  <p class="setting-label" id="rc-toggle-label">تفعيل راحة القراءة</p>
+                  <p class="setting-desc">مطفأة افتراضيًا · تُطبَّق على الكتل العربية فقط</p>
+                </div>
+                <button id="rc-toggle" class="toggle toggle-teal" role="switch" aria-checked="false" aria-labelledby="rc-toggle-label">
+                  <span class="knob"></span>
+                </button>
+              </div>
+            </div>
+            <div class="rc-sliders">
+              <div class="rc-slider-row">
+                <label class="rc-slider-label" for="rc-font-scale">حجم الخط</label>
+                <input type="range" id="rc-font-scale" min="100" max="130" step="2" value="108">
+                <span class="rc-slider-value" id="rc-font-scale-value">108%</span>
+              </div>
+              <div class="rc-slider-row">
+                <label class="rc-slider-label" for="rc-line-height">تباعد الأسطر</label>
+                <input type="range" id="rc-line-height" min="1.4" max="2.2" step="0.05" value="1.8">
+                <span class="rc-slider-value" id="rc-line-height-value">1.8</span>
+              </div>
+            </div>
+            <button type="button" id="rc-reset" class="rc-reset-btn">استعادة القيم الافتراضية</button>
+          </div>
           <div class="control-block theme-block">
             <p class="control-label" id="theme-label">المظهر</p>
             <div class="mode-selector" id="theme-selector" role="radiogroup" aria-labelledby="theme-label">

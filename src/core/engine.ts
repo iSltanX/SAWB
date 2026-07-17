@@ -5,8 +5,25 @@
 
 import type { SiteAdapter } from '../adapters/types';
 import type { EffectiveConfig, Mode } from '../platform/types';
-import { applyToField, applyToDisplay, restoreAll, restoreElement, isFormField, MARK_ATTR } from './apply';
+import {
+  applyToField,
+  applyToDisplay,
+  restoreAll,
+  restoreElement,
+  isFormField,
+  MARK_ATTR,
+  type DisplayOptions,
+} from './apply';
 import { BatchedObserver } from './observe';
+
+type Typography = NonNullable<DisplayOptions['typography']>;
+
+/** Sort elements into document order (ancestors and earlier siblings first). */
+function inDocumentOrder(elements: Set<Element>): Element[] {
+  return Array.from(elements).sort((a, b) =>
+    a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
+  );
+}
 
 /** A host fighting us this often over one element wins that element. */
 const REASSERT_LIMIT = 10;
@@ -69,8 +86,9 @@ export class DirectionEngine {
       }
     }
     if (config.display && this.displaySelector) {
+      const typography = this.typographyFor(config);
       for (const root of Array.from(this.doc.querySelectorAll(this.displaySelector))) {
-        this.applyDisplay(root, config.mode);
+        this.applyDisplay(root, config.mode, typography);
       }
     }
   }
@@ -80,13 +98,25 @@ export class DirectionEngine {
     applyToField(el, mode, this.excludeSelector);
   }
 
-  private applyDisplay(root: Element, mode: Mode): void {
+  /**
+   * Reading-comfort typography, or null when the feature isn't effective for
+   * this page. Derived once per pass (not re-read inside applyDisplay) so
+   * every display root in the same pass sees the same value — matching how
+   * `mode` is already threaded through as an explicit argument.
+   */
+  private typographyFor(config: EffectiveConfig): Typography | null {
+    return config.readingComfort
+      ? { fontScale: config.fontScale, lineHeight: config.lineHeight }
+      : null;
+  }
+
+  private applyDisplay(root: Element, mode: Mode, typography: Typography | null): void {
     if (!root.isConnected || this.surrendered.has(root)) return;
     // Nested display roots (e.g. `.markdown` inside `[role=main]`) are applied
     // individually; leaf-block logic keeps double application idempotent.
-    const opts = this.excludeSelector !== undefined
-      ? { respectHostDir: !this.adapter.overridesHostDir, excludeSelector: this.excludeSelector }
-      : { respectHostDir: !this.adapter.overridesHostDir };
+    const opts: DisplayOptions = this.excludeSelector !== undefined
+      ? { respectHostDir: !this.adapter.overridesHostDir, excludeSelector: this.excludeSelector, typography }
+      : { respectHostDir: !this.adapter.overridesHostDir, typography };
     applyToDisplay(root, mode, opts);
   }
 
@@ -122,7 +152,15 @@ export class DirectionEngine {
       if (this.hostWonFight(el, config.mode)) continue;
       this.applyField(el, config.mode);
     }
-    for (const el of displayRoots) this.applyDisplay(el, config.mode);
+    if (displayRoots.size > 0) {
+      const typography = this.typographyFor(config);
+      // Document order, not batch-insertion order: a nested display root must
+      // see its ancestor's typography ownership already settled, otherwise the
+      // descendant could claim a scale first and both would end up scaled.
+      for (const el of inDocumentOrder(displayRoots)) {
+        this.applyDisplay(el, config.mode, typography);
+      }
+    }
 
     if (this.reasserts.size > 200) this.pruneReasserts();
   }

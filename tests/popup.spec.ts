@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { initPopup } from '../src/ui/popup/popup';
 import { chromeStub, tick } from './helpers/setup';
-import { DEFAULT_SETTINGS, resolveEffectiveConfig } from '../src/platform/types';
+import { DEFAULT_SETTINGS, resolveEffectiveConfig, resolveReadingComfortRequest } from '../src/platform/types';
 import type { SiteMap, Settings, TempOverride } from '../src/platform/types';
 import type { PageState, SawbMessage } from '../src/platform/messages';
 import type { SupportLevel } from '../src/adapters/types';
@@ -31,6 +31,9 @@ function installFakePage(host: string, level: SupportLevel = 'full') {
       supportLevel: level,
       config: resolveEffectiveConfig(settings, sites[host], temp, { genericSite: level === 'generic' }),
       hasTempOverride: temp !== null,
+      rcRequested: resolveReadingComfortRequest(settings, sites[host], temp, {
+        genericSite: level === 'generic',
+      }),
     } satisfies PageState;
   };
   return {
@@ -286,5 +289,198 @@ describe('master toggle and external changes', () => {
     await tick();
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     expect(el('master-toggle').getAttribute('aria-checked')).toBe('false');
+  });
+});
+
+describe('reading-comfort quick toggle (Draft 1.0 — flips the raw request, not the gated value)', () => {
+  it('with display on, turning it on with saving OFF sends a temp override', async () => {
+    const fake = await openPopup();
+    el('display-toggle').click();
+    await tick();
+    expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('false');
+    el('reading-comfort-toggle').click();
+    await tick();
+    expect(fake.getTemp()).toMatchObject({ readingComfort: true });
+    expect(sites()['chatgpt.com']).toBeUndefined();
+  });
+
+  it('turning it on requires display too — enabling both makes the toggle show active', async () => {
+    await openPopup();
+    el('display-toggle').click();
+    await tick();
+    el('reading-comfort-toggle').click();
+    await tick();
+    expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('toggle is disabled when display is off, and says why', async () => {
+    await openPopup(); // display defaults to false
+    const toggle = el('reading-comfort-toggle');
+    expect(toggle.getAttribute('aria-disabled')).toBe('true');
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(el('reading-comfort-row').classList.contains('row-disabled')).toBe(true);
+    expect(el('reading-comfort-sub').textContent).toBe('يتطلب تفعيل النصوص المعروضة');
+  });
+
+  it('aria state and explanatory text return to normal once display is on', async () => {
+    await openPopup();
+    el('display-toggle').click();
+    await tick();
+    const toggle = el('reading-comfort-toggle');
+    expect(toggle.getAttribute('aria-disabled')).toBe('false');
+    expect(el('reading-comfort-row').classList.contains('row-disabled')).toBe(false);
+    expect(el('reading-comfort-sub').textContent).toBe(
+      'تحسين حجم الخط وتباعد الأسطر للنص العربي المعروض',
+    );
+  });
+
+  it('clicking it while disabled does not mutate temp or site preferences', async () => {
+    const fake = await openPopup(); // display off → toggle inert
+    el('reading-comfort-toggle').click();
+    await tick();
+    expect(fake.getTemp()).toBeNull();
+    expect(sites()['chatgpt.com']).toBeUndefined();
+  });
+
+  it('clicking it while disabled never rewrites a saved rcRequested behind the UI', async () => {
+    chromeStub.storage.local.data = {
+      sites: { 'chatgpt.com': { display: false, readingComfort: true, savedAt: 1 } },
+    };
+    const fake = await openPopup();
+    expect(el('reading-comfort-toggle').getAttribute('aria-disabled')).toBe('true');
+    el('reading-comfort-toggle').click();
+    await tick();
+    // The stored request is untouched: an inert control must not mutate state
+    // the user cannot see change.
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true, display: false });
+    expect(fake.getTemp()).toBeNull();
+  });
+
+  it('saved rcRequested survives display off → on → off', async () => {
+    chromeStub.storage.local.data = {
+      sites: { 'chatgpt.com': { display: false, readingComfort: true, savedAt: 1 } },
+    };
+    await openPopup();
+    expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('false'); // gated
+
+    el('display-toggle').click(); // display on → the saved request takes effect
+    await tick();
+    expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('true');
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true });
+
+    el('display-toggle').click(); // display off again → gated, but not lost
+    await tick();
+    expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('false');
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true });
+  });
+
+  it('with saving ON, clicking persists readingComfort on the SitePref', async () => {
+    await openPopup();
+    el('save-toggle').click();
+    await tick();
+    el('display-toggle').click();
+    await tick();
+    el('reading-comfort-toggle').click();
+    await tick();
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true, display: true });
+  });
+
+  it(
+    'critical case: turning saving OFF while display=false preserves the RAW stored request ' +
+      'instead of the gated value — the two diverge exactly here',
+    async () => {
+      // The save-toggle runs regardless of display, and mirrors the current
+      // state into a temp override. With display off, cfg.readingComfort is
+      // false while the stored request is true: mirroring the GATED value
+      // would silently downgrade the user's intent to false.
+      chromeStub.storage.local.data = {
+        sites: { 'chatgpt.com': { display: false, readingComfort: true, savedAt: 1 } },
+      };
+      const fake = await openPopup();
+      expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('false'); // gated
+      expect(el('save-toggle').getAttribute('aria-checked')).toBe('true'); // saved values exist
+
+      el('save-toggle').click(); // turn saving off
+      await tick();
+
+      expect(sites()['chatgpt.com']).toBeUndefined(); // entry dropped
+      expect(fake.getTemp()).toMatchObject({ readingComfort: true }); // RAW request carried over
+    },
+  );
+
+  it(
+    're-enabling display later automatically restores a preserved readingComfort request',
+    async () => {
+      chromeStub.storage.local.data = {
+        sites: { 'chatgpt.com': { display: false, readingComfort: true, savedAt: 1 } },
+      };
+      await openPopup();
+      expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('false');
+      el('display-toggle').click();
+      await tick();
+      // No click on the reading-comfort toggle itself — the stored request
+      // (true) takes effect automatically the moment display turns back on.
+      expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('true');
+    },
+  );
+
+  it('re-enabling a disabled site carries the saved readingComfort forward', async () => {
+    chromeStub.storage.local.data = {
+      sites: {
+        'chatgpt.com': { display: true, readingComfort: true, disabled: true, savedAt: 1 },
+      },
+    };
+    await openPopup();
+    el('disable-toggle').click();
+    await tick();
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true, display: true });
+    expect(sites()['chatgpt.com']!.disabled).toBeUndefined();
+  });
+
+  it('disabling a site stops SAWB via enabled=false, while the saved readingComfort request is preserved', async () => {
+    await openPopup();
+    el('save-toggle').click();
+    await tick();
+    el('display-toggle').click();
+    await tick();
+    el('reading-comfort-toggle').click();
+    await tick();
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true, display: true });
+
+    el('disable-toggle').click();
+    await tick();
+
+    // What actually stops every SAWB edit on a disabled site is enabled=false
+    // — the content script calls engine.stop() on that alone (see
+    // content/index.ts sync()). This is the assertion that matters.
+    const state = (await chromeStub.tabs.sendMessage(1, { type: 'sawb/get-state' })) as PageState;
+    expect(state.config.enabled).toBe(false);
+
+    // readingComfort/display keep reporting the CONFIGURED intent rather than
+    // being falsified — exactly as fields/display already do — and the saved
+    // request survives so re-enabling the site restores it untouched.
+    expect(state.config.readingComfort).toBe(true);
+    expect(state.rcRequested).toBe(true);
+    expect(sites()['chatgpt.com']).toMatchObject({ readingComfort: true, disabled: true });
+    expect(el('reading-comfort-toggle').getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('turning saving OFF mirrors the raw request into the temp override so the page does not jump', async () => {
+    const fake = await openPopup();
+    el('save-toggle').click();
+    await tick();
+    el('display-toggle').click();
+    await tick();
+    el('reading-comfort-toggle').click();
+    await tick();
+    el('save-toggle').click(); // off
+    await tick();
+    expect(sites()['chatgpt.com']).toBeUndefined();
+    expect(fake.getTemp()).toMatchObject({ readingComfort: true, display: true });
+  });
+
+  it('tints with the active mode color like the other content toggles', async () => {
+    await openPopup();
+    expect(el('reading-comfort-toggle').style.getPropertyValue('--toggle-color')).toBe('#1A2540');
   });
 });
