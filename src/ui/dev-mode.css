@@ -1,0 +1,227 @@
+/**
+ * «صَوْب للمطورين» — the developer-identity layer.
+ *
+ * Transcribed from the authoritative reference (SAWB Design developer
+ * identity system.zip → src/App.tsx). Palette: direction 2 «تقني ومتوازن» —
+ * APPROVED FINAL by the product owner: it separates the developer identity
+ * technically without approaching neon and without reading as a mere dark
+ * theme of the base identity. Steel borders, deeper surfaces, technical
+ * badges, mono for technical values only. Owner-approved refinements applied:
+ * glow on focus/active only, AA-checked muted/dim text, and a 1.5px/1px
+ * border hierarchy (primary cards & inspection panels vs secondary rows).
+ * Decisions and documented deviations live in docs/sawb-dev-identity.md —
+ * do not restyle ad hoc.
+ *
+ * EVERY rule here is scoped under `:root[data-dev-mode]`. Removing that
+ * attribute returns the UI to the normal identity byte-for-byte; this file
+ * must never affect normal mode. The attribute is set by popup/options from
+ * Settings.devMode — the engine never reads it.
+ */
+
+/* ── Developer palette (direction 2 — تقني ومتوازن · معتمدة نهائيًا) ── */
+:root[data-dev-mode] {
+  --sawb-dev-bg: #070C15;            /* خلفية الصفحة */
+  --sawb-dev-nav: #050A12;           /* شريط/رأس */
+  --sawb-dev-card: #0A1320;          /* البطاقة الأساسية */
+  --sawb-dev-card-alt: #0E1828;      /* البطاقة الثانوية */
+  --sawb-dev-border: #1E3C6A;        /* حد فولاذي عادي */
+  --sawb-dev-border-strong: #2A5090; /* حد قوي */
+  --sawb-dev-border-accent: rgba(46, 207, 168, 0.31);
+  --sawb-dev-teal: #2ECFA8;          /* فعل RTL / نشط */
+  --sawb-dev-orange: #D4892E;        /* فعل LTR */
+  --sawb-dev-blue: #1E40B0;          /* فعل أساسي (تلقائي) */
+  --sawb-dev-text: #ECF0F8;
+  /* Muted/dim lifted from the reference's #5878A8/#304060 (owner-approved
+     contrast refinement): the originals measured 3.96–4.35:1 and 1.72–1.89:1
+     on the dev surfaces — below comfortable small-text reading. The values
+     below measure ≈4.9–5.4:1 (AA for small text) and ≈3.0–3.4:1 (micro-caps
+     labels that always sit beside a high-contrast mono value). */
+  --sawb-dev-text-muted: #6888B8;
+  --sawb-dev-text-dim: #4A6690;
+  --sawb-dev-host: #A880E8;          /* شارة HOST حصرًا — لا يُستخدم لأي دور آخر */
+  --sawb-dev-tag: #093A52;
+  /* Glow is a FOCUS/ACTIVE-only effect (owner refinement) — never a resting
+     surface treatment on cards. Its single sanctioned use is the
+     :focus-visible ring halo below. */
+  --sawb-dev-glow: rgba(46, 207, 168, 0.12);
+
+  /* ── Semantic remap: the existing component system re-colors itself ── */
+  --sawb-teal: var(--sawb-dev-teal);
+  --sawb-copper: var(--sawb-dev-orange);
+  --sawb-navy: var(--sawb-dev-blue);
+  --sawb-auto-blue: var(--sawb-dev-text-muted);
+  --sawb-teal-tint: rgba(46, 207, 168, 0.14);
+
+  --sawb-bg: var(--sawb-dev-bg);
+  --sawb-card: var(--sawb-dev-card);
+  --sawb-section: var(--sawb-dev-card-alt);
+  --sawb-text: var(--sawb-dev-text);
+  --sawb-muted: var(--sawb-dev-text-muted);
+  --sawb-border: var(--sawb-dev-border);
+  --sawb-content: var(--sawb-dev-bg);
+  --sawb-kbd-bg: var(--sawb-dev-nav);
+  --sawb-toggle-off: var(--sawb-dev-border);
+  --sawb-popup-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+  --sawb-settings-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  --sawb-privacy-bg: rgba(46, 207, 168, 0.08);
+  --sawb-privacy-border: rgba(46, 207, 168, 0.2);
+
+  --background: var(--sawb-dev-bg);
+  --foreground: var(--sawb-dev-text);
+  --ring: var(--sawb-dev-teal);
+}
+
+/* ── Border hierarchy (owner refinement) ──
+   Primary cards & inspection panels: 1.5px steel. Secondary rows and minor
+   components: 1px. Never a blanket 1.5px — the weight difference is what
+   makes the hierarchy legible. */
+:root[data-dev-mode] .site-actions,
+:root[data-dev-mode] .privacy-box,
+:root[data-dev-mode] .version-card {
+  border: 1.5px solid var(--sawb-dev-border);
+}
+
+:root[data-dev-mode] .setting-row {
+  border: 1px solid var(--sawb-dev-border);
+}
+
+/* .site-row keeps its base 1px width; the token remap re-colors it. */
+
+:root[data-dev-mode] .settings-card {
+  border-width: 1.5px;
+  border-color: var(--sawb-dev-border-strong);
+}
+
+/* ── Focus glow — the only sanctioned use of --sawb-dev-glow ── */
+:root[data-dev-mode] :focus-visible {
+  box-shadow: 0 0 0 4px var(--sawb-dev-glow);
+}
+
+/* ── Technical badges (المرجع Badge: زوايا 5px، حد ظاهر، مونو للاتيني) ── */
+:root[data-dev-mode] .badge,
+:root[data-dev-mode] .site-mode-badge {
+  border-radius: 5px;
+  border: 1px solid var(--sawb-dev-border-accent);
+  letter-spacing: 0.3px;
+}
+
+:root[data-dev-mode] .badge-auto {
+  border-color: var(--sawb-dev-border);
+}
+
+:root[data-dev-mode] .site-mode-badge.mode-rtl {
+  border-color: var(--sawb-dev-border-accent);
+}
+
+:root[data-dev-mode] .site-mode-badge.mode-ltr {
+  border-color: rgba(212, 137, 46, 0.31);
+}
+
+:root[data-dev-mode] .site-mode-badge.mode-auto,
+:root[data-dev-mode] .site-mode-badge.mode-disabled {
+  border-color: var(--sawb-dev-border);
+}
+
+/* RTL/LTR segments are technical values → mono (تلقائي يبقى Almarai/Cairo). */
+:root[data-dev-mode] .mode-selector button[data-mode='rtl'],
+:root[data-dev-mode] .mode-selector button[data-mode='ltr'] {
+  font-family: var(--sawb-font-mono);
+  font-size: 12px;
+}
+
+/* ── Diagnostics strip (popup) — ADAPTER / SUPPORT / DIR / RC ── */
+.dev-diagnostics {
+  display: none;
+}
+
+:root[data-dev-mode] .dev-diagnostics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+  margin: 10px 16px 0;
+  padding: 10px 12px;
+  background: var(--sawb-dev-card);
+  /* Inspection panel → the heavier border tier. */
+  border: 1.5px solid var(--sawb-dev-border);
+  border-radius: 8px;
+}
+
+:root[data-dev-mode] .dev-diagnostics[hidden] {
+  display: none;
+}
+
+.dev-diag-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dev-diag-label {
+  font-family: var(--sawb-font-mono);
+  /* 9px (not 8) + the lifted dim color: micro-caps stay comfortably legible. */
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--sawb-dev-text-dim);
+  flex-shrink: 0;
+}
+
+.dev-diag-value {
+  font-family: var(--sawb-font-mono);
+  font-size: 11px;
+  color: var(--sawb-dev-teal);
+  direction: ltr;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Dev-state pill («● وضع المطورين نشط» — حول الإضافة) ── */
+.dev-pill {
+  display: none;
+}
+
+:root[data-dev-mode] .dev-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: var(--sawb-dev-card);
+  /* Status pill = secondary component → the 1px border tier. */
+  border: 1px solid var(--sawb-dev-border);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--sawb-dev-text-muted);
+}
+
+:root[data-dev-mode] .dev-pill[hidden] {
+  display: none;
+}
+
+.dev-pill-dot {
+  color: var(--sawb-dev-teal);
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* ── Creator signature (About page only — the SAME shared section) ──
+   Without this override the mask inherits the full --sawb-text ink
+   (#ECF0F8, the brightest value in the identity) and the signature would
+   outshine the SAWB wordmark itself. Owner direction: calm presence — the
+   muted identity ink, no glow, never more prominent than the product mark.
+   The secondary lines (By Sultan / license) already follow --sawb-muted via
+   the token remap; the structure, order and placement are untouched. */
+:root[data-dev-mode] .creator-sig {
+  background-color: var(--sawb-dev-text-muted);
+}
+
+/* ── Version caption «SAWB · DEVS» (بطاقة الإصدار في الإعدادات) ── */
+:root[data-dev-mode] .version-sub.dev-caption {
+  font-family: var(--sawb-font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  direction: ltr;
+  text-align: right;
+}

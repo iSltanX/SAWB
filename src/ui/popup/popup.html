@@ -24,6 +24,15 @@
     <span id="site-badge" class="badge badge-teal" hidden>موقع مدعوم ✓</span>
   </div>
 
+  <!-- Diagnostics strip — dev identity only (display: none outside dev mode).
+       Real PageState values; no new messaging, no engine involvement. -->
+  <div id="dev-diagnostics" class="dev-diagnostics" hidden>
+    <div class="dev-diag-item"><span class="dev-diag-label">ADAPTER</span><span class="dev-diag-value" id="diag-adapter">—</span></div>
+    <div class="dev-diag-item"><span class="dev-diag-label">SUPPORT</span><span class="dev-diag-value" id="diag-support">—</span></div>
+    <div class="dev-diag-item"><span class="dev-diag-label">DIR</span><span class="dev-diag-value" id="diag-dir">—</span></div>
+    <div class="dev-diag-item"><span class="dev-diag-label">RC</span><span class="dev-diag-value" id="diag-rc">—</span></div>
+  </div>
+
   <div id="page-controls">
     <!-- Mode selector -->
     <section class="mode-block">

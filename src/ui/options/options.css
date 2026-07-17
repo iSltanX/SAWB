@@ -13,6 +13,7 @@
 @import '../fonts.css';
 @import '../tokens.css';
 @import '../components.css';
+@import '../dev-mode.css';
 
 * {
   box-sizing: border-box;
@@ -172,6 +173,11 @@ button {
 
 .theme-block {
   margin-top: 20px;
+  margin-bottom: 0;
+}
+
+.dev-mode-block {
+  margin-top: 24px;
   margin-bottom: 0;
 }
 
@@ -558,7 +564,9 @@ button {
   background-color: var(--sawb-text);
   -webkit-mask: url('../assets/brand/sultan_calligraphy.svg') no-repeat center / contain;
   mask: url('../assets/brand/sultan_calligraphy.svg') no-repeat center / contain;
-  margin-bottom: 8px;
+  /* The SVG carries generous internal padding; 2px here (not 8) keeps the
+     signature visually attached to «تصميم وبرمجة سلطان» below it. */
+  margin-bottom: 2px;
 }
 
 .creator-name {

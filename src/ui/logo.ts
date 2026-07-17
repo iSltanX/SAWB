@@ -22,17 +22,36 @@ export function logoMarkSvg(size = 36): string {
 </svg>`;
 }
 
+export interface WordmarkOptions {
+  /**
+   * «صَوْب للمطورين» — a product STATE of the same wordmark, never a separate
+   * logo (dev-identity reference, LogoBlock): «للمطورين» in teal under صَوْب,
+   * and the latin caption becomes mono, letterspaced «SAWB · DEVS». The mark
+   * itself keeps the canonical brand colors in both modes — it is the family
+   * constant (docs/sawb-dev-identity.md, deviations table).
+   */
+  devMode?: boolean;
+}
+
 /**
  * Full wordmark (mark + «صَوْب» + SAWB). Font sizes, weights, letter-spacing
  * and colors follow LogoWordmark in App.tsx exactly; colors resolve through
- * the theme tokens (text/muted swap between light and dark).
+ * the theme tokens (text/muted swap between light and dark). With no options
+ * the output is byte-identical to the pre-dev-identity wordmark.
  */
-export function logoWordmarkHtml(size = 32): string {
+export function logoWordmarkHtml(size = 32, opts: WordmarkOptions = {}): string {
+  const dev = opts.devMode === true;
+  const devLine = dev
+    ? `\n<div style="font-size:${size * 0.31}px;font-weight:400;color:var(--sawb-teal);margin-top:1px">للمطورين</div>`
+    : '';
+  const caption = dev
+    ? `<div style="font-size:${size * 0.27}px;font-weight:400;font-family:var(--sawb-font-mono);color:var(--sawb-muted);letter-spacing:0.22em;direction:ltr;margin-top:2px">SAWB · DEVS</div>`
+    : `<div style="font-size:${size * 0.27}px;font-weight:300;color:var(--sawb-muted);letter-spacing:0.16em;direction:ltr;margin-top:2px">SAWB</div>`;
   return `<div class="sawb-wordmark" style="display:flex;align-items:center;gap:10px">
 ${logoMarkSvg(size)}
 <div style="font-family:var(--sawb-font-brand);line-height:1.1;user-select:none">
-<div style="font-size:${size * 0.56}px;font-weight:800;color:var(--sawb-text)">صَوْب</div>
-<div style="font-size:${size * 0.27}px;font-weight:300;color:var(--sawb-muted);letter-spacing:0.16em;direction:ltr;margin-top:2px">SAWB</div>
+<div style="font-size:${size * 0.56}px;font-weight:800;color:var(--sawb-text)">صَوْب</div>${devLine}
+${caption}
 </div>
 </div>`;
 }

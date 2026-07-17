@@ -32,6 +32,7 @@ describe('settings', () => {
       readingComfort: false,
       rcFontScale: 1.08,
       rcLineHeight: 1.8,
+      devMode: false,
     } satisfies Settings);
     expect('autoDetect' in settings).toBe(false);
   });

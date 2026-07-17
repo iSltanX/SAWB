@@ -24,6 +24,16 @@ export interface Settings {
   rcFontScale: number;
   /** Global unitless line-height for RTL display blocks (e.g. 1.8). */
   rcLineHeight: number;
+
+  /**
+   * «صَوْب للمطورين» — an IDENTITY state of the extension UI (popup/options):
+   * deeper dev-dark tokens, «للمطورين» under the wordmark, diagnostic badges
+   * and denser technical readouts. Strictly presentation: it never enters
+   * EffectiveConfig, the engine and content script never read it, and page
+   * processing is byte-identical in both modes. The stored `theme` is left
+   * untouched so switching back restores the user's appearance exactly.
+   */
+  devMode: boolean;
 }
 
 export interface SitePref {
@@ -80,6 +90,8 @@ export const DEFAULT_SETTINGS: Settings = {
   readingComfort: false,
   rcFontScale: 1.08,
   rcLineHeight: 1.8,
+
+  devMode: false,
 };
 
 export const SCHEMA_VERSION = 1;

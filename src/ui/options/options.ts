@@ -83,7 +83,8 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
   };
 
   // ── Static content ────────────────────────────────────────────────────────
-  $('wordmark').innerHTML = logoWordmarkHtml(26);
+  // (The wordmark is rendered in render(): it carries the dev-identity state
+  // «للمطورين» and must follow Settings.devMode live.)
   $('about-logo').innerHTML = logoMarkSvg(40);
   for (const span of Array.from(doc.querySelectorAll<HTMLElement>('.nav-icon'))) {
     span.innerHTML = iconSvg(span.dataset.icon as IconName, 14);
@@ -149,6 +150,15 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
   function render(): void {
     const { settings, sites } = snapshot;
     doc.documentElement.setAttribute('data-theme', settings.theme);
+    // Dev identity: attribute for the dev-mode.css token layer, wordmark
+    // state, and the version caption. The stored theme (above) is untouched —
+    // switching dev mode off restores the user's appearance exactly.
+    if (settings.devMode) doc.documentElement.setAttribute('data-dev-mode', '');
+    else doc.documentElement.removeAttribute('data-dev-mode');
+    $('wordmark').innerHTML = logoWordmarkHtml(26, { devMode: settings.devMode });
+    $('dev-toggle').setAttribute('aria-checked', String(settings.devMode));
+    $('version-sub').textContent = settings.devMode ? 'SAWB · DEVS' : 'يعمل محليًا · بلا حساب';
+    $('version-sub').classList.toggle('dev-caption', settings.devMode);
 
     for (const button of Array.from(
       doc.querySelectorAll<HTMLElement>('#sec-general .mode-selector button[data-mode]'),
@@ -270,6 +280,11 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
   });
   $('indicator-toggle').addEventListener('click', () => {
     void setSettings({ showIndicator: !snapshot.settings.showIndicator });
+  });
+
+  // Developer mode — an identity switch, deliberately plain and reversible.
+  $('dev-toggle').addEventListener('click', () => {
+    void setSettings({ devMode: !snapshot.settings.devMode });
   });
 
   // Reading comfort — master toggle; live label updates on drag, storage

@@ -29,11 +29,15 @@ import type { PageState } from '../../platform/messages';
 import { logoWordmarkHtml } from '../logo';
 import { iconSvg } from '../icons';
 
-/** modeColor from the design (App.tsx): auto→navy, rtl→teal, ltr→copper. */
+/**
+ * modeColor from the design (App.tsx): auto→navy, rtl→teal, ltr→copper —
+ * referenced through the brand tokens so the dev-identity layer (which remaps
+ * them under [data-dev-mode]) re-tints the toggles without any logic here.
+ */
 const MODE_COLOR: Record<Mode, string> = {
-  auto: '#1A2540',
-  rtl: '#1E9080',
-  ltr: '#B8763F',
+  auto: 'var(--sawb-navy)',
+  rtl: 'var(--sawb-teal)',
+  ltr: 'var(--sawb-copper)',
 };
 
 /** modeDesc from the design — exact wording. */
@@ -49,6 +53,16 @@ const RC_SUB_NEEDS_DISPLAY = 'يتطلب تفعيل النصوص المعروض�
 
 function applyTheme(doc: Document, theme: Theme): void {
   doc.documentElement.setAttribute('data-theme', theme);
+}
+
+/**
+ * Developer identity is presentation-only: an attribute the dev-mode.css
+ * token layer keys off. The stored theme above is deliberately left in place —
+ * turning dev mode off restores the user's appearance exactly.
+ */
+function applyDevMode(doc: Document, devMode: boolean): void {
+  if (devMode) doc.documentElement.setAttribute('data-dev-mode', '');
+  else doc.documentElement.removeAttribute('data-dev-mode');
 }
 
 /** Build a SitePref payload without explicit-undefined keys. */
@@ -75,8 +89,8 @@ export async function initPopup(doc: Document): Promise<void> {
     return el;
   };
 
-  // Static content.
-  $('wordmark').innerHTML = logoWordmarkHtml(26);
+  // Static content. (The wordmark is rendered in render(): it carries the
+  // dev-identity state «للمطورين» and must follow Settings.devMode live.)
   $('site-icon').innerHTML = iconSvg('globe', 12);
   $('save-icon').innerHTML = iconSvg('save', 13);
   $('disable-icon').innerHTML = iconSvg('ban', 13);
@@ -134,6 +148,8 @@ export async function initPopup(doc: Document): Promise<void> {
   function render(): void {
     const settings = snapshot.settings;
     applyTheme(doc, settings.theme);
+    applyDevMode(doc, settings.devMode);
+    $('wordmark').innerHTML = logoWordmarkHtml(26, { devMode: settings.devMode });
     doc.body.classList.toggle('page-unavailable', page === null);
 
     const cfg = page?.config ?? {
@@ -202,6 +218,17 @@ export async function initPopup(doc: Document): Promise<void> {
 
     $('save-toggle').setAttribute('aria-checked', String(isSaved()));
     $('disable-toggle').setAttribute('aria-checked', String(isSiteDisabled()));
+
+    // Diagnostics strip (dev identity): real PageState values only — the
+    // stylesheet keeps it display:none outside dev mode, `hidden` covers the
+    // no-page case within it.
+    $('dev-diagnostics').hidden = page === null;
+    if (page) {
+      $('diag-adapter').textContent = page.adapterId;
+      $('diag-support').textContent = page.supportLevel;
+      $('diag-dir').textContent = cfg.mode;
+      $('diag-rc').textContent = cfg.readingComfort ? 'on' : 'off';
+    }
   }
 
   async function refresh(): Promise<void> {

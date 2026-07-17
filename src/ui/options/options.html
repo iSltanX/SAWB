@@ -37,7 +37,7 @@
         </nav>
         <div class="version-card">
           <p class="version-line">صَوْب v<span data-version>1.1.0</span></p>
-          <p class="version-sub">يعمل محليًا · بلا حساب</p>
+          <p class="version-sub" id="version-sub">يعمل محليًا · بلا حساب</p>
         </div>
       </aside>
 
@@ -120,6 +120,20 @@
               <button type="button" data-value="dark" role="radio" aria-checked="false">داكن</button>
             </div>
           </div>
+          <div class="control-block dev-mode-block">
+            <p class="control-label" id="dev-mode-label">وضع المطورين</p>
+            <div class="setting-rows">
+              <div class="setting-row">
+                <div>
+                  <p class="setting-label" id="dev-toggle-label">تفعيل وضع المطورين</p>
+                  <p class="setting-desc">هوية تقنية أعمق وكثافة معلومات أعلى — لا يغيّر سلوك الإضافة</p>
+                </div>
+                <button id="dev-toggle" class="toggle toggle-teal" role="switch" aria-checked="false" aria-labelledby="dev-toggle-label">
+                  <span class="knob"></span>
+                </button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- المواقع المحفوظة -->
@@ -160,6 +174,7 @@
           <p class="about-text">إضافة متصفح تضبط اتجاه الكتابة تلقائيًا بين RTL وLTR داخل حقول النص، خصوصًا في منصات الذكاء الاصطناعي والمنصات التحريرية.</p>
           <p class="about-privacy">يعمل محليًا، بلا حساب أو خادم، ولا يرسل نصوصك.</p>
           <p class="about-compat">متوافقة مع: Chrome · Edge · Brave · Arc</p>
+          <p class="dev-pill" id="dev-state-pill"><span class="dev-pill-dot">●</span> وضع المطورين نشط</p>
           <!-- GitHub links come from src/config/links.ts; the releases button
                is rendered only once RELEASES_PUBLISHED is true. -->
           <div class="about-actions" id="about-actions"></div>

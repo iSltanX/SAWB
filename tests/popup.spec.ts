@@ -194,7 +194,9 @@ describe('temporary vs saved behavior (requirement 6)', () => {
     expect(sites()['chatgpt.com']).toBeUndefined();
     expect(document.querySelector('[data-mode="rtl"]')!.getAttribute('aria-checked')).toBe('true');
     expect(el('mode-desc').textContent).toBe('جميع حقول الكتابة تُجبر على RTL');
-    expect(el('fields-toggle').style.getPropertyValue('--toggle-color')).toBe('#1E9080');
+    // Mode colors are token references so the dev-identity layer can remap
+    // them; in normal mode --sawb-teal still resolves to the brand #1E9080.
+    expect(el('fields-toggle').style.getPropertyValue('--toggle-color')).toBe('var(--sawb-teal)');
   });
 
   it('turning saving ON persists the current effective state', async () => {
@@ -481,6 +483,6 @@ describe('reading-comfort quick toggle (Draft 1.0 — flips the raw request, not
 
   it('tints with the active mode color like the other content toggles', async () => {
     await openPopup();
-    expect(el('reading-comfort-toggle').style.getPropertyValue('--toggle-color')).toBe('#1A2540');
+    expect(el('reading-comfort-toggle').style.getPropertyValue('--toggle-color')).toBe('var(--sawb-navy)');
   });
 });
