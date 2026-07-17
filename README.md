@@ -78,7 +78,7 @@
 
 ## التثبيت والاستخدام
 
-الإصدار الرسمي الحالي هو **v1.1.0**، وكل الإصدارات تُنشر في [صفحة الإصدارات](https://github.com/iSltanX/SAWB/releases) على GitHub. روابط متاجر المتصفحات ستُضاف هنا عند توفرها.
+الإصدار الرسمي الحالي هو **v2.0.0**، وكل الإصدارات تُنشر في [صفحة الإصدارات](https://github.com/iSltanX/SAWB/releases) على GitHub. روابط متاجر المتصفحات ستُضاف هنا عند توفرها.
 
 1. نزّل ملف `sawb-chromium-vX.Y.Z.zip` المرفق بأحدث إصدار، وفُك ضغطه.
 2. افتح `chrome://extensions` (أو ما يقابلها في متصفحك) وفعّل **وضع المطوّر**.
@@ -206,4 +206,4 @@ npm run build
 
 <p align="center" dir="rtl"><b>تصميم وبرمجة سلطان</b><br>By Sultan · <a href="https://github.com/iSltanX">github.com/iSltanX</a></p>
 
-<p align="center"><code>MIT License</code> · <code>v1.1.0</code> · <code>صَوْب · SAWB</code></p>
+<p align="center"><code>MIT License</code> · <code>v2.0.0</code> · <code>صَوْب · SAWB</code></p>
