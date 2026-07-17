@@ -381,3 +381,58 @@ describe('reading comfort settings (Draft 1.0)', () => {
     expect(storedSettings()?.rcLineHeight).toBe(1.8);
   });
 });
+
+describe('developer identity in options (Draft: docs/sawb-dev-identity.md)', () => {
+  it('off by default: toggle unchecked, no attribute, plain wordmark, normal caption', async () => {
+    await openOptions();
+    expect(el('dev-toggle').getAttribute('aria-checked')).toBe('false');
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(false);
+    expect(el('wordmark').innerHTML).not.toContain('للمطورين');
+    expect(el('version-sub').textContent).toBe('يعمل محليًا · بلا حساب');
+    expect(el('version-sub').classList.contains('dev-caption')).toBe(false);
+  });
+
+  it('turning it on persists devMode and applies the identity everywhere', async () => {
+    await openOptions();
+    el('dev-toggle').click();
+    await tick();
+    expect(storedSettings()?.devMode).toBe(true);
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(true);
+    expect(el('wordmark').innerHTML).toContain('للمطورين');
+    expect(el('wordmark').innerHTML).toContain('SAWB · DEVS');
+    expect(el('version-sub').textContent).toBe('SAWB · DEVS');
+    expect(el('version-sub').classList.contains('dev-caption')).toBe(true);
+  });
+
+  it('is fully reversible and never touches the stored theme', async () => {
+    await openOptions({ settings: { theme: 'light' } });
+    el('dev-toggle').click();
+    await tick();
+    expect(storedSettings()?.theme).toBe('light'); // preserved while dev is on
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    el('dev-toggle').click();
+    await tick();
+    expect(storedSettings()?.devMode).toBe(false);
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(false);
+    expect(el('wordmark').innerHTML).not.toContain('للمطورين');
+    expect(el('version-sub').textContent).toBe('يعمل محليًا · بلا حساب');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+  });
+
+  it('the about section carries the dev-state pill markup (visibility is CSS-gated)', async () => {
+    await openOptions();
+    const pill = el('dev-state-pill');
+    expect(pill.textContent).toContain('وضع المطورين نشط');
+    expect(pill.querySelector('.dev-pill-dot')).not.toBeNull();
+  });
+
+  it('devMode changes zero functional settings — direction/fields/display untouched', async () => {
+    await openOptions();
+    el('dev-toggle').click();
+    await tick();
+    const stored = storedSettings()!;
+    expect(stored.defaultMode ?? 'auto').toBe('auto');
+    expect(stored.applyToFields ?? true).toBe(true);
+    expect(stored.applyToDisplay ?? false).toBe(false);
+  });
+});

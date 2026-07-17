@@ -325,4 +325,23 @@ describe('legacy v1.1.0 storage (no reading-comfort fields)', () => {
     const c = resolveEffectiveConfig({ ...DEFAULT_SETTINGS, readingComfort: true }, legacyPref, null);
     expect(c.readingComfort).toBe(true); // inherits global since the site key is absent
   });
+
+  it('fills in devMode=false for settings saved before the developer identity existed', async () => {
+    await setSettings({ defaultMode: 'rtl' });
+    const settings = await getSettings();
+    expect(settings.devMode).toBe(false);
+  });
+});
+
+describe('developer identity is presentation-only', () => {
+  it('devMode never enters EffectiveConfig — the engine cannot see it', () => {
+    const c = resolveEffectiveConfig({ ...DEFAULT_SETTINGS, devMode: true }, undefined, null);
+    expect('devMode' in c).toBe(false);
+  });
+
+  it('devMode on changes nothing in the resolved behavior', () => {
+    const off = resolveEffectiveConfig(DEFAULT_SETTINGS, undefined, null);
+    const on = resolveEffectiveConfig({ ...DEFAULT_SETTINGS, devMode: true }, undefined, null);
+    expect(on).toEqual(off);
+  });
 });

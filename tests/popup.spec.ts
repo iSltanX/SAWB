@@ -486,3 +486,77 @@ describe('reading-comfort quick toggle (Draft 1.0 — flips the raw request, not
     expect(el('reading-comfort-toggle').style.getPropertyValue('--toggle-color')).toBe('var(--sawb-navy)');
   });
 });
+
+describe('developer identity in the popup (presentation-only)', () => {
+  it('normal mode: no data-dev-mode attribute, plain wordmark, no dev traces', async () => {
+    await openPopup();
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(false);
+    expect(el('wordmark').innerHTML).not.toContain('للمطورين');
+    expect(el('wordmark').innerHTML).not.toContain('DEVS');
+  });
+
+  it('dev mode: attribute set, wordmark carries «للمطورين», theme setting untouched', async () => {
+    chromeStub.storage.local.data = { settings: { devMode: true, theme: 'light' } };
+    await openPopup();
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(true);
+    // The user's stored theme keeps driving data-theme — dev identity is a
+    // CSS layer above it, so switching back restores the exact appearance.
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(el('wordmark').innerHTML).toContain('للمطورين');
+    expect(el('wordmark').innerHTML).toContain('SAWB · DEVS');
+  });
+
+  it('diagnostics strip shows real PageState values in dev mode', async () => {
+    chromeStub.storage.local.data = { settings: { devMode: true } };
+    await openPopup('chatgpt.com', 'full');
+    expect(el('dev-diagnostics').hidden).toBe(false);
+    expect(el('diag-adapter').textContent).toBe('chatgpt');
+    expect(el('diag-support').textContent).toBe('full');
+    expect(el('diag-dir').textContent).toBe('auto');
+    expect(el('diag-rc').textContent).toBe('off');
+  });
+
+  it('diagnostics reflect the effective config live (rc on after enabling display+RC)', async () => {
+    chromeStub.storage.local.data = { settings: { devMode: true } };
+    await openPopup();
+    el('display-toggle').click();
+    await tick();
+    el('reading-comfort-toggle').click();
+    await tick();
+    expect(el('diag-rc').textContent).toBe('on');
+    expect(el('diag-dir').textContent).toBe('auto');
+  });
+
+  it('diagnostics strip is hidden when no page is available', async () => {
+    chromeStub.storage.local.data = { settings: { devMode: true } };
+    document.body.innerHTML = body;
+    await initPopup(document); // stub sendMessage throws by default
+    await tick();
+    expect(el('dev-diagnostics').hidden).toBe(true);
+  });
+
+  it('flipping devMode from storage (options page) re-renders the popup identity', async () => {
+    await openPopup();
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(false);
+    await chromeStub.storage.local.set({ settings: { devMode: true } });
+    await tick();
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(true);
+    expect(el('wordmark').innerHTML).toContain('للمطورين');
+    // and back — fully reversible
+    await chromeStub.storage.local.set({ settings: { devMode: false } });
+    await tick();
+    expect(document.documentElement.hasAttribute('data-dev-mode')).toBe(false);
+    expect(el('wordmark').innerHTML).not.toContain('للمطورين');
+  });
+
+  it('dev mode changes zero functional controls — same toggles, same stored prefs', async () => {
+    chromeStub.storage.local.data = { settings: { devMode: true } };
+    await openPopup();
+    el('display-toggle').click();
+    await tick();
+    el('save-toggle').click();
+    await tick();
+    expect(sites()['chatgpt.com']).toMatchObject({ display: true });
+    expect(sites()['chatgpt.com']).not.toHaveProperty('devMode'); // never per-site
+  });
+});
