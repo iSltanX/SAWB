@@ -90,7 +90,7 @@ export async function initOptions(doc: Document, overrides: OptionsOverrides = {
     span.innerHTML = iconSvg(span.dataset.icon as IconName, 14);
   }
 
-  const version = hasExtensionApis() ? ext.runtime.getManifest().version : '1.1.0';
+  const version = hasExtensionApis() ? ext.runtime.getManifest().version : '2.0.0';
   for (const span of Array.from(doc.querySelectorAll<HTMLElement>('[data-version]'))) {
     span.textContent = version;
   }

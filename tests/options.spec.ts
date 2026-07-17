@@ -41,14 +41,14 @@ describe('settings page rendering', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('system');
   });
 
-  it('shows version 1.1.0 in the sidebar card and About — never the prototype 1.2.0', async () => {
+  it('shows version 2.0.0 in the sidebar card and About — never the prototype 1.2.0', async () => {
     await openOptions();
     const versions = Array.from(document.querySelectorAll('[data-version]')).map(
       (s) => s.textContent,
     );
-    expect(versions).toEqual(['1.1.0', '1.1.0']);
+    expect(versions).toEqual(['2.0.0', '2.0.0']);
     expect(document.body.textContent).not.toContain('1.2.0');
-    expect(document.querySelector('.about-version')!.textContent).toBe('الإصدار 1.1.0');
+    expect(document.querySelector('.about-version')!.textContent).toBe('الإصدار 2.0.0');
   });
 
   it('never places MIT next to the version; the license is a quiet closing line', async () => {
