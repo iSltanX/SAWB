@@ -139,7 +139,7 @@ describe('settings page rendering', () => {
     ]);
     const releaseLink = links[2]!;
     expect(releaseLink.href).toBe(GITHUB_LINKS.releases);
-    expect(releaseLink.href).toBe('https://github.com/iSltanX/SAWB/releases');
+    expect(releaseLink.href).toBe('https://github.com/iSltanX/SAWB-Releases/releases');
     expect(releaseLink.target).toBe('_blank');
     expect(releaseLink.rel).toBe('noreferrer');
   });
