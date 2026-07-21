@@ -9,7 +9,7 @@ export const GITHUB_LINKS = {
   /** The SAWB repository. */
   repository: 'https://github.com/iSltanX/SAWB',
   /** Official releases page. */
-  releases: 'https://github.com/iSltanX/SAWB-Releases/releases',
+  releases: 'https://github.com/iSltanX/SAWB/releases',
 } as const;
 
 /**
