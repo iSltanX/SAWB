@@ -204,6 +204,6 @@ npm run build
   </picture>
 </p>
 
-<p align="center" dir="rtl"><b>تصميم وبرمجة سلطان</b><br>By Sultan · <a href="https://github.com/iSltanX">github.com/iSltanX</a></p>
+<p align="center" dir="rtl"><b>تصميم وبرمجة سلطان</b><br>By Sultan · <a href="https://github.com/iSltanX">github.com/iSltanX</a><br>للتواصل: <a href="mailto:iSultanby@gmail.com">iSultanby@gmail.com</a></p>
 
 <p align="center"><code>MIT License</code> · <code>v2.0.0</code> · <code>صَوْب · SAWB</code></p>
