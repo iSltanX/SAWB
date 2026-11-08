@@ -370,7 +370,7 @@ export async function initPopup(doc: Document): Promise<void> {
     try {
       void ext.runtime.openOptionsPage?.();
     } catch {
-      /* options page ships in the next stage */
+      /* openOptionsPage unavailable in this context */
     }
   });
 

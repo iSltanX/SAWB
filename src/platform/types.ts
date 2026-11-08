@@ -1,4 +1,4 @@
-/** Shared data model — approved storage schema (Phase 2 review, item 5). */
+/** Shared data model — the stored settings schema. */
 
 export type Mode = 'auto' | 'rtl' | 'ltr';
 export type Theme = 'light' | 'dark' | 'system';
@@ -97,7 +97,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const SCHEMA_VERSION = 1;
 
 /**
- * Approved reading-comfort ranges (spec §7). Deliberately narrow: a wide range
+ * Approved reading-comfort ranges. Deliberately narrow: a wide range
  * breaks fixed-height cards, table alignment and scroll position far more
  * readily than it helps.
  */
@@ -127,7 +127,7 @@ export function clampLineHeight(value: unknown): number {
   return clampRange(value, RC_LINE_HEIGHT_MIN, RC_LINE_HEIGHT_MAX, DEFAULT_SETTINGS.rcLineHeight);
 }
 
-/** Per-tab, in-memory override (never persisted) — Phase 2 review, item 6. */
+/** Per-tab, in-memory override (never persisted). */
 export interface TempOverride {
   mode?: Mode;
   fields?: boolean;

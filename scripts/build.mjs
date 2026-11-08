@@ -4,7 +4,7 @@
  * Vite passes:
  *  1. content script  → dist/content.js  (IIFE — MV3 content scripts are not modules)
  *  2. service worker  → dist/worker.js   (ES module)
- *  3. (next stage) popup/options HTML pages
+ *  3. popup/options HTML pages
  * plus static copies: manifest, icons.
  *
  * Output: dist/ — loadable unpacked in Chrome/Edge/Brave/Arc.

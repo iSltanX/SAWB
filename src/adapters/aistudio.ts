@@ -5,7 +5,7 @@
  * - Composer: a plain <textarea aria-label="Enter a prompt"> inside the
  *   <ms-prompt-box> Angular component (cdk-textarea-autosize).
  * - Chat turns (`ms-chat-turn`, `.turn-content`) exist only inside a
- *   conversation; verified during the live engine run (see final report).
+ *   conversation; verified during a live engine run.
  * - AI Studio embeds code editors for structured output — covered by the
  *   global protected list (.cm-editor / .monaco-editor).
  */
