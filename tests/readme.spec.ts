@@ -18,7 +18,8 @@ function targets(): string[] {
   return out;
 }
 
-const isExternal = (t: string) => /^[a-z]+:\/\//.test(t) || t.startsWith('#');
+const isExternal = (t: string) =>
+  /^[a-z]+:\/\//.test(t) || t.startsWith('mailto:') || t.startsWith('#');
 
 describe('README asset paths', () => {
   it('every relative image and link target exists in the repository', () => {
