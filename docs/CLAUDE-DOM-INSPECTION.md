@@ -1,54 +1,51 @@
-# Claude.ai display adapter — inspection history (resolved)
+# Claude.ai adapter — maintenance notes
 
-**Status: complete.** `src/adapters/claude.ts` has verified `displaySelectors`
-and full support (fields + displayed content). This document is kept as a
-record of how the selectors were confirmed and two mistakes caught along the
-way, in case the adapter needs revisiting after a Claude.ai UI change.
+`src/adapters/claude.ts` has full support (writing fields + displayed
+content), verified live on a real, logged-in conversation. The reasoning
+behind every selector is in the adapter's header comment, and
+`tests/adapters/claude.spec.ts` pins the behavior with a fixture built from
+the inspected DOM. This page is for when Claude.ai changes its UI.
 
-## Timeline
+## What the adapter depends on
 
-1. The in-browser inspection tool that gives live, authenticated access to
-   claude.ai disconnected mid-project. `displaySelectors` shipped empty
-   rather than guessed (see git history on `src/adapters/claude.ts`), and the
-   popup showed a "دعم جزئي — الحقول فقط" (partial support) badge instead of
-   overclaiming.
-2. The project owner ran a DevTools inspection on a real, logged-in
-   conversation and supplied the raw DOM dump: feed root
-   `[role="feed"][aria-label="Chat messages"]`, message containers
-   `[role="article"][aria-label^="Message "]`, an assistant-only `h2.sr-only`
-   accessibility heading, and a list of interactive `data-testid` hooks
-   (`action-bar-*`, `model-selector-dropdown`, `file-thumbnail`,
-   `voice-audio-visualizer`, `chat-input`, `wiggle-controls-*`).
-3. The in-browser inspection tool reconnected, allowing direct live
-   verification of the implementation on a real conversation instead of
-   relying on the static dump alone.
-4. Live verification caught two selector mistakes that the static dump alone
-   didn't reveal, both from excluding by *inferred* purpose instead of
-   *confirmed* DOM content:
-   - A blanket `button` exclude (meant to protect the action bar) silently
-     hid every user message, because Claude wraps the entire user-message
-     bubble in a `<button>` for click-to-edit — assistant messages worked,
-     user messages didn't.
-   - `[data-testid="file-thumbnail"]` (assumed to be a small image icon) on
-     a message with a large pasted-text attachment turned out to wrap the
-     entire attachment card — 300+ characters of real Arabic text, not an
-     image. Excluding it hid that content.
-   Both were fixed by narrowing to what was actually confirmed:
-   `[role="toolbar"]` + `action-bar-*` fully cover the action bar without a
-   `button` exclude, and a genuine image-only thumbnail has no text leaf
-   blocks to apply direction to in the first place, so no exclude was needed
-   there either.
-5. After the fixes, live verification confirmed: Arabic user and assistant
-   messages resolve RTL in auto mode; a pasted-attachment card gets
-   direction; the action bar, sidebar, sr-only labels, and model selector are
-   never touched; manual RTL/LTR/auto switching updates existing messages
-   immediately; a newly sent message and its streamed assistant reply both
-   receive direction; disabling restores the page exactly.
+- Feed root `[role="feed"][aria-label="Chat messages"]` — every message lives
+  inside it; the sidebar, header and composer never do.
+- Message containers `[role="article"][aria-label^="Message "]` — the same
+  pattern for user and assistant turns.
+- Both selectors match English `aria-label` text. If Claude.ai renames or
+  localizes these labels, displayed content silently stops being processed.
+- Controls are excluded through `excludeSelectors` (`.sr-only`,
+  `[role="toolbar"]`, `[role="status"]`, and the `action-bar-*` /
+  `model-selector-dropdown` / `voice-audio-visualizer` / `wiggle-controls*`
+  `data-testid` hooks). `excludeSelectors` is shared by the field and display
+  passes, so never add `contenteditable`, `textarea` or `input` there — it
+  would disable the composer.
 
-## Reusable diagnostic script
+## Two excludes that were tried and rejected
 
-Kept for future re-verification after a Claude.ai redesign. Run in DevTools
-Console on a live conversation:
+- `button`: Claude wraps the whole user-message bubble in a `<button>`
+  (click-to-edit), so this exclude hid every user message. The action bar is
+  already covered by `[role="toolbar"]` and `action-bar-*`.
+- `[data-testid="file-thumbnail"]`: on a pasted-text attachment it wraps the
+  whole attachment card, including real Arabic text. Image-only thumbnails have
+  no text blocks, so the engine skips them without an exclude.
+
+## Re-verifying after a redesign
+
+1. Open a real conversation that has Arabic user and assistant messages, and
+   run the script below in the DevTools Console.
+2. Update `displaySelectors` / `excludeSelectors` from what the page actually
+   contains, update the fixture in `tests/adapters/claude.spec.ts`, then run
+   `npm run check`.
+3. If the display DOM cannot be verified live, leave `displaySelectors`
+   empty: the popup then reports partial support instead of overclaiming
+   (see `supportLevel` in `src/adapters/types.ts`).
+4. Check on the live page: Arabic messages resolve RTL in auto mode; the
+   action bar, sidebar, sr-only labels and model selector are untouched;
+   switching RTL/LTR/auto updates existing messages; a newly streamed reply
+   gets direction; disabling restores the page exactly.
+
+## Diagnostic script
 
 ```js
 (() => {
@@ -88,10 +85,13 @@ Console on a live conversation:
 })();
 ```
 
-## Lesson for future adapters
+The script is not Claude-specific: it works on any site whose content sits
+inside `main`, so it is also a starting point for other adapters.
 
-Do not exclude an element by its *name* or assumed purpose alone
-(`file-thumbnail` sounds decorative; `button` sounds like a control). Verify
-what it actually wraps on a live page first — the engine's own "skip empty
-text" rule already leaves genuinely decorative elements alone, so exclude
-entries should only exist for confirmed, content-bearing UI controls.
+## Rule for every adapter
+
+Do not exclude an element by its name or assumed purpose alone
+(`file-thumbnail` sounds decorative; `button` sounds like a control). Check
+what it wraps on a live page first. The engine already skips elements with no
+text, so exclude entries are only for UI controls that carry text and are
+confirmed not to wrap message content.
